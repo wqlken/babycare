@@ -25,6 +25,8 @@ Use Next.js with the App Router, TypeScript, Prisma, PostgreSQL, Tailwind CSS, a
 
 The Next.js application will serve both the UI and the backend behavior. Form-oriented writes should start with Server Actions to reduce duplicated client/API logic. API routes can be added later for highly interactive flows or external integrations.
 
+Version 1 authentication uses email and password login. Email verification and password reset are out of scope for the first release. Invitation links are used only to join an existing family workspace after registration or login.
+
 Docker Compose will run:
 
 - `app`: the Next.js application.
@@ -49,6 +51,8 @@ Routes:
 - `/settings/account`: profile and password settings.
 
 The dashboard should be optimized for one-handed phone use. It should show time since the last feeding, diaper, and sleep event, today's feeding count and bottle volume, today's diaper count, today's sleep duration, and large actions for feeding, diaper, and sleep logging.
+
+Date-based summaries should use the family timezone. The initial default is `Asia/Shanghai`, with the model leaving room for a future family-level timezone setting.
 
 ## Data Model
 
@@ -76,7 +80,7 @@ Roles:
 - `owner`: manage children, invite members, remove members, and delete records.
 - `caregiver`: view all records, create records, and edit records they created.
 
-Record deletion should be owner-only in the first release to reduce accidental data loss. Every record should show the creator so family members can see who logged it.
+Owners may edit and delete all records. Caregivers may edit only records they created and may not delete records in the first release. Record deletion should be owner-only to reduce accidental data loss. Every record should show the creator so family members can see who logged it.
 
 ## Validation Rules
 
@@ -112,3 +116,5 @@ Required environment variables:
 Do not commit `.env` files, database volumes, or backups. Provide `.env.example`.
 
 For public access, put the app behind HTTPS through a reverse proxy and set `APP_URL` to the public domain. Add a backup path for PostgreSQL dumps in a later operations task.
+
+Container startup must not reset or destroy existing database data. Production schema changes should run through `prisma migrate deploy`. Seed data is for development only and should not run automatically in production containers.
