@@ -1,0 +1,125 @@
+import { describe, expect, test, vi } from "vitest";
+import {
+  authenticateUser,
+  registerUser,
+  type AuthDatabase,
+} from "@/lib/auth/service";
+
+function createAuthDatabase(): AuthDatabase {
+  const users: Array<{
+    id: string;
+    email: string;
+    passwordHash: string;
+    displayName: string;
+  }> = [];
+
+  return {
+    user: {
+      count: vi.fn(async () => users.length),
+      create: vi.fn(async ({ data }) => {
+        const user = {
+          id: `user-${users.length + 1}`,
+          email: data.email,
+          passwordHash: data.passwordHash,
+          displayName: data.displayName,
+        };
+        users.push(user);
+        return user;
+      }),
+      findUnique: vi.fn(async ({ where }) => {
+        return users.find((user) => user.email === where.email) ?? null;
+      }),
+    },
+    family: {
+      create: vi.fn(async () => ({ id: "family-1" })),
+    },
+    userPreference: {
+      create: vi.fn(async () => ({ id: "preference-1" })),
+    },
+  };
+}
+
+describe("authentication rules", () => {
+  test("bootstrap registration creates the first owner and family", async () => {
+    const db = createAuthDatabase();
+
+    const result = await registerUser(
+      {
+        email: "Owner@Example.com",
+        password: "babycare123",
+        displayName: "Owner",
+      },
+      db,
+    );
+
+    expect(result).toEqual({ ok: true, userId: "user-1" });
+    expect(db.user.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        email: "owner@example.com",
+        displayName: "Owner",
+      }),
+    });
+    expect(db.family.create).toHaveBeenCalledWith({
+      data: {
+        name: "我的家庭",
+        createdBy: "user-1",
+        members: {
+          create: {
+            userId: "user-1",
+            role: "owner",
+          },
+        },
+      },
+    });
+  });
+
+  test("second public registration fails without an invite", async () => {
+    const db = createAuthDatabase();
+
+    await registerUser(
+      {
+        email: "owner@example.com",
+        password: "babycare123",
+        displayName: "Owner",
+      },
+      db,
+    );
+
+    const result = await registerUser(
+      {
+        email: "caregiver@example.com",
+        password: "babycare123",
+        displayName: "Caregiver",
+      },
+      db,
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      error: "Registration requires an invitation.",
+    });
+  });
+
+  test("login succeeds with valid credentials", async () => {
+    const db = createAuthDatabase();
+
+    await registerUser(
+      {
+        email: "owner@example.com",
+        password: "babycare123",
+        displayName: "Owner",
+      },
+      db,
+    );
+
+    await expect(
+      authenticateUser(
+        {
+          email: "OWNER@example.com",
+          password: "babycare123",
+        },
+        db,
+      ),
+    ).resolves.toEqual({ ok: true, userId: "user-1" });
+  });
+});
