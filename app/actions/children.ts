@@ -1,0 +1,21 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { requireUser } from "@/lib/auth/guards";
+import { createChild } from "@/lib/children/service";
+
+export async function createChildAction(formData: FormData) {
+  const user = await requireUser();
+  const result = await createChild(user.id, {
+    name: String(formData.get("name") ?? ""),
+    birthday: String(formData.get("birthday") ?? ""),
+    gender: String(formData.get("gender") ?? ""),
+    notes: String(formData.get("notes") ?? ""),
+  });
+
+  if (!result.ok) {
+    redirect(`/children?error=${encodeURIComponent(result.error)}`);
+  }
+
+  redirect("/");
+}
