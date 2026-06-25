@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum FamilyRole {
+  owner
+  caregiver
+}
+
+enum FeedingType {
+  breast
+  bottle
+}
+
+enum BreastSide {
+  left
+  right
+  both
+  unknown
+}
+
+enum DiaperType {
+  wet
+  dirty
+  both
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  displayName  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships FamilyMember[]
+  preference  UserPreference?
+}
+
+model UserPreference {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  currentChildId String?
+  milkUnit       String   @default("ml")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentChild Child? @relation(fields: [currentChildId], references: [id])
+}
+
+model Family {
+  id        String   @id @default(cuid())
+  name      String
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members  FamilyMember[]
+  invites  Invite[]
+  children Child[]
+}
+
+model FamilyMember {
+  id        String     @id @default(cuid())
+  familyId  String
+  userId    String
+  role      FamilyRole
+  joinedAt  DateTime   @default(now())
+  removedAt DateTime?
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, userId])
+  @@index([userId])
+}
+
+model Invite {
+  id           String    @id @default(cuid())
+  familyId     String
+  tokenHash    String    @unique
+  invitedEmail String
+  expiresAt    DateTime
+  usedAt       DateTime?
+  createdAt    DateTime  @default(now())
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
+}
+
+model Child {
+  id         String    @id @default(cuid())
+  familyId   String
+  name       String
+  birthday   DateTime
+  gender     String?
+  notes      String?
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  family      Family           @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  feedings    FeedingRecord[]
+  diapers     DiaperRecord[]
+  sleeps      SleepRecord[]
+  preferences UserPreference[]
+
+  @@index([familyId])
+}
+
+model FeedingRecord {
+  id                 String      @id @default(cuid())
+  childId            String
+  creatorId          String
+  creatorDisplayName String
+  type               FeedingType
+  breastSide         BreastSide?
+  startTime          DateTime
+  endTime            DateTime?
+  amountMl           Int?
+  notes              String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([childId, startTime])
+  @@index([creatorId])
+}
+
+model DiaperRecord {
+  id                 String     @id @default(cuid())
+  childId            String
+  creatorId          String
+  creatorDisplayName String
+  time               DateTime
+  type               DiaperType
+  notes              String?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([childId, time])
+  @@index([creatorId])
+}
+
+model SleepRecord {
+  id                 String    @id @default(cuid())
+  childId            String
+  creatorId          String
+  creatorDisplayName String
+  startTime          DateTime
+  endTime            DateTime?
+  notes              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([childId, startTime])
+  @@index([creatorId])
+}

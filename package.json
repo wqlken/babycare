@@ -6,12 +6,18 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "latest",
+    "@prisma/adapter-pg": "latest",
     "bcryptjs": "latest",
     "next": "latest",
+    "pg": "latest",
     "react": "latest",
     "react-dom": "latest",
     "zod": "latest"
@@ -20,6 +26,7 @@
     "@tailwindcss/postcss": "latest",
     "@types/bcryptjs": "latest",
     "@types/node": "latest",
+    "@types/pg": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "eslint": "latest",
