@@ -4,6 +4,7 @@ import { registerAction } from "@/app/actions/auth";
 type RegisterPageProps = {
   searchParams?: Promise<{
     error?: string;
+    invite?: string;
   }>;
 };
 
@@ -19,6 +20,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
         </p>
       ) : null}
       <form action={registerAction} className="mt-8 space-y-5">
+        <input name="invite" type="hidden" value={params?.invite ?? ""} />
         <label className="block">
           <span className="text-sm font-medium text-slate-700">显示名称</span>
           <input

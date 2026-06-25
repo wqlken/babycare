@@ -9,10 +9,13 @@ export async function registerAction(formData: FormData) {
     email: String(formData.get("email") ?? ""),
     password: String(formData.get("password") ?? ""),
     displayName: String(formData.get("displayName") ?? ""),
+    inviteToken: String(formData.get("invite") ?? "") || undefined,
   });
 
   if (!result.ok) {
-    redirect(`/register?error=${encodeURIComponent(result.error)}`);
+    const inviteToken = String(formData.get("invite") ?? "");
+    const inviteQuery = inviteToken ? `&invite=${encodeURIComponent(inviteToken)}` : "";
+    redirect(`/register?error=${encodeURIComponent(result.error)}${inviteQuery}`);
   }
 
   await setSession(result.userId);

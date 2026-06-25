@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
+import { acceptInvite } from "@/lib/family/service";
 
 export type AuthDatabase = {
   user: {
@@ -38,6 +39,7 @@ export type RegisterInput = {
   email: string;
   password: string;
   displayName: string;
+  inviteToken?: string;
 };
 
 export type LoginInput = {
@@ -65,7 +67,7 @@ export async function registerUser(
   }
 
   const existingUsers = await db.user.count();
-  if (existingUsers > 0) {
+  if (existingUsers > 0 && !input.inviteToken) {
     return { ok: false, error: "Registration requires an invitation." };
   }
 
@@ -78,18 +80,30 @@ export async function registerUser(
     },
   });
 
-  await db.family.create({
-    data: {
-      name: "我的家庭",
-      createdBy: user.id,
-      members: {
-        create: {
-          userId: user.id,
-          role: "owner",
+  if (input.inviteToken) {
+    const inviteResult = await acceptInvite({
+      token: input.inviteToken,
+      userId: user.id,
+      email,
+    });
+
+    if (!inviteResult.ok) {
+      return inviteResult;
+    }
+  } else {
+    await db.family.create({
+      data: {
+        name: "我的家庭",
+        createdBy: user.id,
+        members: {
+          create: {
+            userId: user.id,
+            role: "owner",
+          },
         },
       },
-    },
-  });
+    });
+  }
 
   await db.userPreference.create({
     data: {
