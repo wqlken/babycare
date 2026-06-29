@@ -3,7 +3,13 @@ import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTypescript from "eslint-config-next/typescript";
 
 const eslintConfig = [
-  globalIgnores([".next/**", "build/**", "dist/**", "node_modules/**"]),
+  globalIgnores([
+    ".next/**",
+    ".worktrees/**",
+    "build/**",
+    "dist/**",
+    "node_modules/**",
+  ]),
   ...nextVitals,
   ...nextTypescript,
 ];
