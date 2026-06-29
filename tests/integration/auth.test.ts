@@ -100,6 +100,35 @@ describe("authentication rules", () => {
     });
   });
 
+  test("invalid invite registration does not create an orphan user", async () => {
+    const db = createAuthDatabase();
+
+    await registerUser(
+      {
+        email: "owner@example.com",
+        password: "babycare123",
+        displayName: "Owner",
+      },
+      db,
+    );
+
+    const result = await registerUser(
+      {
+        email: "caregiver@example.com",
+        password: "babycare123",
+        displayName: "Caregiver",
+        inviteToken: "invalid-token",
+      },
+      db,
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      error: "Invitation is invalid or already used.",
+    });
+    await expect(db.user.count()).resolves.toBe(1);
+  });
+
   test("login succeeds with valid credentials", async () => {
     const db = createAuthDatabase();
 

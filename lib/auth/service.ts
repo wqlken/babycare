@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
-import { acceptInvite } from "@/lib/family/service";
+import {
+  acceptInvite,
+  validateInviteForEmail,
+  type InviteAcceptanceDatabase,
+  type InviteValidationDatabase,
+} from "@/lib/family/service";
 
 export type AuthDatabase = {
   user: {
@@ -32,6 +37,34 @@ export type AuthDatabase = {
   };
   userPreference: {
     create: (args: { data: { userId: string } }) => Promise<unknown>;
+  };
+  invite?: {
+    findFirst: (args: {
+      where: {
+        tokenHash: string;
+        usedAt: null;
+      };
+    }) => Promise<{
+      id: string;
+      familyId: string;
+      tokenHash: string;
+      invitedEmail: string;
+      expiresAt: Date;
+      usedAt: Date | null;
+    } | null>;
+    update: (args: {
+      where: { id: string };
+      data: { usedAt: Date };
+    }) => Promise<unknown>;
+  };
+  familyMember?: {
+    create: (args: {
+      data: {
+        familyId: string;
+        userId: string;
+        role: "caregiver";
+      };
+    }) => Promise<unknown>;
   };
 };
 
@@ -71,6 +104,24 @@ export async function registerUser(
     return { ok: false, error: "Registration requires an invitation." };
   }
 
+  if (input.inviteToken) {
+    if (!db.invite || !db.familyMember) {
+      return { ok: false, error: "Invitation is invalid or already used." };
+    }
+
+    const inviteResult = await validateInviteForEmail(
+      {
+        token: input.inviteToken,
+        email,
+      },
+      db as InviteValidationDatabase,
+    );
+
+    if (!inviteResult.ok) {
+      return inviteResult;
+    }
+  }
+
   const passwordHash = await hashPassword(input.password);
   const user = await db.user.create({
     data: {
@@ -81,11 +132,14 @@ export async function registerUser(
   });
 
   if (input.inviteToken) {
-    const inviteResult = await acceptInvite({
-      token: input.inviteToken,
-      userId: user.id,
-      email,
-    });
+    const inviteResult = await acceptInvite(
+      {
+        token: input.inviteToken,
+        userId: user.id,
+        email,
+      },
+      db as InviteAcceptanceDatabase,
+    );
 
     if (!inviteResult.ok) {
       return inviteResult;

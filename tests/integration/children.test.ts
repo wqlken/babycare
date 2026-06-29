@@ -2,6 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import {
   createChild,
   getChildDashboardTarget,
+  setCurrentChild,
   type ChildrenDatabase,
 } from "@/lib/children/service";
 
@@ -22,7 +23,7 @@ function createChildrenDatabase(): ChildrenDatabase {
     familyMember: {
       findFirst: vi.fn(async () => ({
         familyId: "family-1",
-        role: "owner",
+        role: "owner" as const,
         removedAt: null,
       })),
     },
@@ -90,6 +91,45 @@ describe("child onboarding", () => {
     await expect(getChildDashboardTarget("user-1", db)).resolves.toEqual({
       kind: "child",
       childId: "child-1",
+    });
+  });
+
+  test("users can switch their current child to another accessible child", async () => {
+    const db = createChildrenDatabase();
+
+    await createChild(
+      "user-1",
+      {
+        name: "大宝",
+        birthday: "2024-01-01",
+      },
+      db,
+    );
+    await createChild(
+      "user-1",
+      {
+        name: "小宝",
+        birthday: "2026-01-01",
+      },
+      db,
+    );
+
+    await expect(setCurrentChild("user-1", "child-2", db)).resolves.toEqual({
+      ok: true,
+      childId: "child-2",
+    });
+    await expect(getChildDashboardTarget("user-1", db)).resolves.toEqual({
+      kind: "child",
+      childId: "child-2",
+    });
+  });
+
+  test("users cannot switch current child to another family child", async () => {
+    const db = createChildrenDatabase();
+
+    await expect(setCurrentChild("user-1", "other-child", db)).resolves.toEqual({
+      ok: false,
+      error: "Child is not accessible.",
     });
   });
 });

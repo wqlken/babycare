@@ -4,6 +4,8 @@ import {
   createDiaper,
   startBreastfeeding,
   startSleep,
+  stopBreastfeeding,
+  stopSleep,
   type RecordsDatabase,
 } from "@/lib/records/service";
 
@@ -40,7 +42,7 @@ function createRecordsDatabase(): RecordsDatabase {
     familyMember: {
       findFirst: vi.fn(async () => ({
         familyId: "family-1",
-        role: "owner",
+        role: "owner" as const,
         removedAt: null,
       })),
     },
@@ -78,6 +80,12 @@ function createRecordsDatabase(): RecordsDatabase {
         feedings.push(feeding);
         return feeding;
       }),
+      update: vi.fn(async ({ where, data }) => {
+        const feeding = feedings.find((item) => item.id === where.id);
+        if (!feeding) throw new Error("Feeding not found.");
+        feeding.endTime = data.endTime;
+        return feeding;
+      }),
     },
     diaperRecord: {
       create: vi.fn(async ({ data }) => ({
@@ -105,6 +113,12 @@ function createRecordsDatabase(): RecordsDatabase {
           notes: data.notes ?? null,
         };
         sleeps.push(sleep);
+        return sleep;
+      }),
+      update: vi.fn(async ({ where, data }) => {
+        const sleep = sleeps.find((item) => item.id === where.id);
+        if (!sleep) throw new Error("Sleep not found.");
+        sleep.endTime = data.endTime;
         return sleep;
       }),
     },
@@ -166,6 +180,31 @@ describe("record creation", () => {
     });
   });
 
+  test("stops the active breastfeeding record for one child", async () => {
+    const db = createRecordsDatabase();
+
+    await startBreastfeeding(
+      "user-1",
+      {
+        childId: "child-1",
+        breastSide: "left",
+        startTime: new Date("2026-06-25T01:00:00.000Z"),
+      },
+      db,
+    );
+
+    await expect(
+      stopBreastfeeding(
+        "user-1",
+        {
+          childId: "child-1",
+          endTime: new Date("2026-06-25T01:20:00.000Z"),
+        },
+        db,
+      ),
+    ).resolves.toEqual({ ok: true, recordId: "feeding-1" });
+  });
+
   test("creates a diaper record", async () => {
     const db = createRecordsDatabase();
 
@@ -208,5 +247,29 @@ describe("record creation", () => {
       ok: false,
       error: "An active sleep record already exists.",
     });
+  });
+
+  test("stops the active sleep record for one child", async () => {
+    const db = createRecordsDatabase();
+
+    await startSleep(
+      "user-1",
+      {
+        childId: "child-1",
+        startTime: new Date("2026-06-25T01:00:00.000Z"),
+      },
+      db,
+    );
+
+    await expect(
+      stopSleep(
+        "user-1",
+        {
+          childId: "child-1",
+          endTime: new Date("2026-06-25T02:00:00.000Z"),
+        },
+        db,
+      ),
+    ).resolves.toEqual({ ok: true, recordId: "sleep-1" });
   });
 });

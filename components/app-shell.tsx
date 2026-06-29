@@ -6,14 +6,22 @@ import type { listAccessibleChildren } from "@/lib/children/service";
 type AppShellProps = {
   children: ReactNode;
   childList: Awaited<ReturnType<typeof listAccessibleChildren>>;
+  currentChildId?: string;
 };
 
-export function AppShell({ children, childList }: AppShellProps) {
+export function AppShell({
+  children,
+  childList,
+  currentChildId,
+}: AppShellProps) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-          <ChildSwitcher childrenList={childList} />
+          <ChildSwitcher
+            childrenList={childList}
+            currentChildId={currentChildId}
+          />
           <form action={logoutAction}>
             <button className="rounded border border-slate-300 px-3 py-1.5 text-sm font-medium">
               退出

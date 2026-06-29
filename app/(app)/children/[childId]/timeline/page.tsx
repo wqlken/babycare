@@ -1,4 +1,6 @@
 import { getDashboardData } from "@/lib/dashboard";
+import { requireUser } from "@/lib/auth/guards";
+import { notFound } from "next/navigation";
 
 type PageProps = {
   params: Promise<{ childId: string }>;
@@ -15,8 +17,13 @@ function formatTime(date: Date) {
 }
 
 export default async function TimelinePage({ params }: PageProps) {
+  const user = await requireUser();
   const { childId } = await params;
-  const dashboard = await getDashboardData(childId);
+  const dashboard = await getDashboardData(user.id, childId);
+
+  if (!dashboard) {
+    notFound();
+  }
 
   return (
     <section className="space-y-5">

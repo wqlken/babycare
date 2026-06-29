@@ -20,5 +20,9 @@ export default async function AppLayout({ children }: AppLayoutProps) {
 
   const childList = await listAccessibleChildren(user.id);
 
-  return <AppShell childList={childList}>{children}</AppShell>;
+  return (
+    <AppShell childList={childList} currentChildId={target.childId}>
+      {children}
+    </AppShell>
+  );
 }

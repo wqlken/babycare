@@ -32,6 +32,16 @@ type SleepRecordCreateInput = {
   notes?: string | null;
 };
 
+type ActiveFeedingRecord = {
+  id: string;
+  startTime?: Date;
+};
+
+type ActiveSleepRecord = {
+  id: string;
+  startTime?: Date;
+};
+
 export type RecordsDatabase = {
   user: {
     findUnique: (args: {
@@ -61,9 +71,13 @@ export type RecordsDatabase = {
         type: "breast";
         endTime: null;
       };
-    }) => Promise<unknown>;
+    }) => Promise<ActiveFeedingRecord | null>;
     create: (args: {
       data: FeedingRecordCreateInput;
+    }) => Promise<{ id: string }>;
+    update: (args: {
+      where: { id: string };
+      data: { endTime: Date };
     }) => Promise<{ id: string }>;
   };
   diaperRecord: {
@@ -84,9 +98,13 @@ export type RecordsDatabase = {
         childId: string;
         endTime: null;
       };
-    }) => Promise<unknown>;
+    }) => Promise<ActiveSleepRecord | null>;
     create: (args: {
       data: SleepRecordCreateInput;
+    }) => Promise<{ id: string }>;
+    update: (args: {
+      where: { id: string };
+      data: { endTime: Date };
     }) => Promise<{ id: string }>;
   };
 };
@@ -274,6 +292,71 @@ export async function startSleep(
       startTime: input.startTime,
       endTime: null,
       notes: cleanNotes(input.notes),
+    },
+  });
+
+  return { ok: true, recordId: record.id };
+}
+
+export async function stopBreastfeeding(
+  userId: string,
+  input: {
+    childId: string;
+    endTime: Date;
+  },
+  db: RecordsDatabase = prisma,
+): Promise<RecordResult> {
+  const context = await getRecordContext(userId, input.childId, db);
+  if (!context.ok) return context;
+
+  const active = await db.feedingRecord.findFirst({
+    where: {
+      childId: context.child.id,
+      type: "breast",
+      endTime: null,
+    },
+  });
+
+  if (!active) {
+    return { ok: false, error: "No active breastfeeding record exists." };
+  }
+
+  const record = await db.feedingRecord.update({
+    where: { id: active.id },
+    data: {
+      endTime: input.endTime,
+    },
+  });
+
+  return { ok: true, recordId: record.id };
+}
+
+export async function stopSleep(
+  userId: string,
+  input: {
+    childId: string;
+    endTime: Date;
+  },
+  db: RecordsDatabase = prisma,
+): Promise<RecordResult> {
+  const context = await getRecordContext(userId, input.childId, db);
+  if (!context.ok) return context;
+
+  const active = await db.sleepRecord.findFirst({
+    where: {
+      childId: context.child.id,
+      endTime: null,
+    },
+  });
+
+  if (!active) {
+    return { ok: false, error: "No active sleep record exists." };
+  }
+
+  const record = await db.sleepRecord.update({
+    where: { id: active.id },
+    data: {
+      endTime: input.endTime,
     },
   });
 

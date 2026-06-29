@@ -18,7 +18,9 @@ export const DEFAULT_SEED_INPUT: SeedInput = {
   childBirthday: new Date("2026-01-01T00:00:00.000Z"),
 };
 
-export function readSeedInput(env: NodeJS.ProcessEnv = process.env): SeedInput {
+type SeedEnv = Record<string, string | undefined>;
+
+export function readSeedInput(env: SeedEnv = process.env): SeedInput {
   return {
     ownerEmail: env.SEED_OWNER_EMAIL ?? DEFAULT_SEED_INPUT.ownerEmail,
     ownerPassword: env.SEED_OWNER_PASSWORD ?? DEFAULT_SEED_INPUT.ownerPassword,

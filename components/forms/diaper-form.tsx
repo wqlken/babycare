@@ -2,14 +2,16 @@ import { createDiaperAction } from "@/app/actions/diapers";
 
 type DiaperFormProps = {
   childId: string;
+  childName: string;
   error?: string;
 };
 
-export function DiaperForm({ childId, error }: DiaperFormProps) {
+export function DiaperForm({ childId, childName, error }: DiaperFormProps) {
   return (
     <form action={createDiaperAction} className="space-y-5">
       <input name="childId" type="hidden" value={childId} />
       <h1 className="text-2xl font-semibold">记录尿布</h1>
+      <p className="text-sm text-slate-500">当前宝宝：{childName}</p>
       {error ? (
         <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {error}

@@ -5,10 +5,11 @@ import {
 
 type FeedingFormProps = {
   childId: string;
+  childName: string;
   error?: string;
 };
 
-export function FeedingForm({ childId, error }: FeedingFormProps) {
+export function FeedingForm({ childId, childName, error }: FeedingFormProps) {
   return (
     <div className="space-y-8">
       {error ? (
@@ -19,6 +20,7 @@ export function FeedingForm({ childId, error }: FeedingFormProps) {
       <form action={createBottleFeedingAction} className="space-y-4">
         <input name="childId" type="hidden" value={childId} />
         <h1 className="text-2xl font-semibold">记录瓶喂</h1>
+        <p className="text-sm text-slate-500">当前宝宝：{childName}</p>
         <label className="block">
           <span className="text-sm font-medium text-slate-700">奶量 ml</span>
           <input
@@ -45,6 +47,7 @@ export function FeedingForm({ childId, error }: FeedingFormProps) {
       <form action={startBreastfeedingAction} className="space-y-4">
         <input name="childId" type="hidden" value={childId} />
         <h2 className="text-xl font-semibold">开始母乳计时</h2>
+        <p className="text-sm text-slate-500">当前宝宝：{childName}</p>
         <select
           className="w-full rounded border border-slate-300 px-3 py-2"
           name="breastSide"

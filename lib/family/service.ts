@@ -61,6 +61,35 @@ export type FamilyDatabase = {
   };
 };
 
+export type InviteValidationDatabase = {
+  invite: {
+    findFirst: (args: {
+      where: {
+        tokenHash: string;
+        usedAt: null;
+      };
+    }) => Promise<InviteRecord | null>;
+  };
+};
+
+export type InviteAcceptanceDatabase = InviteValidationDatabase & {
+  familyMember: {
+    create: (args: {
+      data: {
+        familyId: string;
+        userId: string;
+        role: "caregiver";
+      };
+    }) => Promise<unknown>;
+  };
+  invite: InviteValidationDatabase["invite"] & {
+    update: (args: {
+      where: { id: string };
+      data: { usedAt: Date };
+    }) => Promise<unknown>;
+  };
+};
+
 type ServiceResult<T> = ({ ok: true } & T) | { ok: false; error: string };
 
 export function hashInviteToken(token: string) {
@@ -129,7 +158,7 @@ export async function acceptInvite(
     email: string;
     now?: Date;
   },
-  db: FamilyDatabase = prisma,
+  db: InviteAcceptanceDatabase = prisma,
 ): Promise<ServiceResult<{ familyId: string }>> {
   const invite = await db.invite.findFirst({
     where: {
@@ -166,6 +195,43 @@ export async function acceptInvite(
     where: { id: invite.id },
     data: { usedAt: now },
   });
+
+  return {
+    ok: true,
+    familyId: invite.familyId,
+  };
+}
+
+export async function validateInviteForEmail(
+  input: {
+    token: string;
+    email: string;
+    now?: Date;
+  },
+  db: InviteValidationDatabase = prisma,
+): Promise<ServiceResult<{ familyId: string }>> {
+  const invite = await db.invite.findFirst({
+    where: {
+      tokenHash: hashInviteToken(input.token),
+      usedAt: null,
+    },
+  });
+
+  if (!invite) {
+    return { ok: false, error: "Invitation is invalid or already used." };
+  }
+
+  const now = input.now ?? new Date();
+  if (invite.expiresAt < now) {
+    return { ok: false, error: "Invitation has expired." };
+  }
+
+  if (normalizeEmail(input.email) !== invite.invitedEmail) {
+    return {
+      ok: false,
+      error: "Invitation email does not match this account.",
+    };
+  }
 
   return {
     ok: true,

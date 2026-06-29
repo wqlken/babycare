@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/auth/guards";
 import {
   createBottleFeeding,
   startBreastfeeding,
+  stopBreastfeeding,
 } from "@/lib/records/service";
 
 function redirectWithError(childId: string, target: string, error: string) {
@@ -44,6 +45,21 @@ export async function startBreastfeedingAction(formData: FormData) {
         | "unknown") ?? "unknown",
     startTime: new Date(),
     notes: String(formData.get("notes") ?? ""),
+  });
+
+  if (!result.ok) {
+    redirectWithError(childId, "new", result.error);
+  }
+
+  redirect("/");
+}
+
+export async function stopBreastfeedingAction(formData: FormData) {
+  const user = await requireUser();
+  const childId = String(formData.get("childId") ?? "");
+  const result = await stopBreastfeeding(user.id, {
+    childId,
+    endTime: new Date(),
   });
 
   if (!result.ok) {

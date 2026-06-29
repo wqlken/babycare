@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/guards";
-import { createChild } from "@/lib/children/service";
+import { createChild, setCurrentChild } from "@/lib/children/service";
 
 export async function createChildAction(formData: FormData) {
   const user = await requireUser();
@@ -15,6 +15,18 @@ export async function createChildAction(formData: FormData) {
 
   if (!result.ok) {
     redirect(`/children?error=${encodeURIComponent(result.error)}`);
+  }
+
+  redirect("/");
+}
+
+export async function setCurrentChildAction(formData: FormData) {
+  const user = await requireUser();
+  const childId = String(formData.get("childId") ?? "");
+  const result = await setCurrentChild(user.id, childId);
+
+  if (!result.ok) {
+    redirect(`/?error=${encodeURIComponent(result.error)}`);
   }
 
   redirect("/");

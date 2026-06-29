@@ -42,6 +42,13 @@ export type ChildrenDatabase = {
         notes?: string;
       };
     }) => Promise<ChildRecord>;
+    findFirst?: (args: {
+      where: {
+        id: string;
+        familyId: string;
+        archivedAt: null;
+      };
+    }) => Promise<ChildRecord | null>;
   };
   userPreference: {
     findUnique: (args: {
@@ -68,6 +75,10 @@ export type CreateChildInput = {
 };
 
 export type CreateChildResult =
+  | { ok: true; childId: string }
+  | { ok: false; error: string };
+
+type SetCurrentChildResult =
   | { ok: true; childId: string }
   | { ok: false; error: string };
 
@@ -102,6 +113,31 @@ export async function listAccessibleChildren(
       birthday: "asc",
     },
   });
+}
+
+export async function getAccessibleChild(
+  userId: string,
+  childId: string,
+  db: ChildrenDatabase = prisma,
+) {
+  const membership = await getActiveFamily(userId, db);
+
+  if (!membership) {
+    return null;
+  }
+
+  if (db.child.findFirst) {
+    return db.child.findFirst({
+      where: {
+        id: childId,
+        familyId: membership.familyId,
+        archivedAt: null,
+      },
+    });
+  }
+
+  const children = await listAccessibleChildren(userId, db);
+  return children.find((child) => child.id === childId) ?? null;
 }
 
 export async function getChildDashboardTarget(
@@ -163,6 +199,34 @@ export async function createChild(
       notes: input.notes?.trim() || undefined,
     },
   });
+
+  await db.userPreference.upsert({
+    where: { userId },
+    create: {
+      userId,
+      currentChildId: child.id,
+    },
+    update: {
+      currentChildId: child.id,
+    },
+  });
+
+  return {
+    ok: true,
+    childId: child.id,
+  };
+}
+
+export async function setCurrentChild(
+  userId: string,
+  childId: string,
+  db: ChildrenDatabase = prisma,
+): Promise<SetCurrentChildResult> {
+  const child = await getAccessibleChild(userId, childId, db);
+
+  if (!child) {
+    return { ok: false, error: "Child is not accessible." };
+  }
 
   await db.userPreference.upsert({
     where: { userId },

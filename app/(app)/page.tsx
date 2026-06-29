@@ -1,6 +1,7 @@
 import { requireUser } from "@/lib/auth/guards";
 import { ActiveTimers } from "@/components/dashboard/active-timers";
 import { QuickActions } from "@/components/dashboard/quick-actions";
+import { RecentEvents } from "@/components/dashboard/recent-events";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import {
   getChildDashboardTarget,
@@ -17,7 +18,7 @@ export default async function Home() {
       ? children.find((child) => child.id === target.childId)
       : null;
   const dashboard = currentChild
-    ? await getDashboardData(currentChild.id)
+    ? await getDashboardData(user.id, currentChild.id)
     : null;
 
   return (
@@ -35,10 +36,20 @@ export default async function Home() {
         <>
           <QuickActions childId={currentChild.id} />
           <ActiveTimers
+            childId={currentChild.id}
             activeBreastfeeding={dashboard.activeBreastfeeding}
             activeSleep={dashboard.activeSleep}
           />
-          <SummaryCards summary={dashboard.summary} />
+          <SummaryCards
+            summary={dashboard.summary}
+            lastFeedingAt={dashboard.lastFeedingAt}
+            lastDiaperAt={dashboard.lastDiaperAt}
+            lastSleepAt={dashboard.lastSleepAt}
+          />
+          <RecentEvents
+            childId={currentChild.id}
+            items={dashboard.timelineItems}
+          />
         </>
       ) : null}
     </section>

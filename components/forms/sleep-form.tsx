@@ -2,14 +2,16 @@ import { startSleepAction } from "@/app/actions/sleep";
 
 type SleepFormProps = {
   childId: string;
+  childName: string;
   error?: string;
 };
 
-export function SleepForm({ childId, error }: SleepFormProps) {
+export function SleepForm({ childId, childName, error }: SleepFormProps) {
   return (
     <form action={startSleepAction} className="space-y-5">
       <input name="childId" type="hidden" value={childId} />
       <h1 className="text-2xl font-semibold">开始睡眠</h1>
+      <p className="text-sm text-slate-500">当前宝宝：{childName}</p>
       {error ? (
         <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {error}
