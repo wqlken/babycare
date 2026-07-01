@@ -49,6 +49,15 @@ export type ChildrenDatabase = {
         archivedAt: null;
       };
     }) => Promise<ChildRecord | null>;
+    update?: (args: {
+      where: { id: string };
+      data: {
+        name?: string;
+        birthday?: Date;
+        gender?: string | null;
+        notes?: string | null;
+      };
+    }) => Promise<ChildRecord>;
   };
   userPreference: {
     findUnique: (args: {
@@ -78,7 +87,13 @@ export type CreateChildResult =
   | { ok: true; childId: string }
   | { ok: false; error: string };
 
+export type UpdateChildInput = CreateChildInput;
+
 type SetCurrentChildResult =
+  | { ok: true; childId: string }
+  | { ok: false; error: string };
+
+type ChildMutationResult =
   | { ok: true; childId: string }
   | { ok: false; error: string };
 
@@ -180,6 +195,10 @@ export async function createChild(
     return { ok: false, error: "Active family membership is required." };
   }
 
+  if (membership.role !== "owner") {
+    return { ok: false, error: "Only owners can manage children." };
+  }
+
   const name = input.name.trim();
   if (!name) {
     return { ok: false, error: "Child name is required." };
@@ -215,6 +234,54 @@ export async function createChild(
     ok: true,
     childId: child.id,
   };
+}
+
+export async function updateChild(
+  userId: string,
+  childId: string,
+  input: UpdateChildInput,
+  db: ChildrenDatabase = prisma,
+): Promise<ChildMutationResult> {
+  const membership = await getActiveFamily(userId, db);
+
+  if (!membership) {
+    return { ok: false, error: "Active family membership is required." };
+  }
+
+  if (membership.role !== "owner") {
+    return { ok: false, error: "Only owners can manage children." };
+  }
+
+  const child = await getAccessibleChild(userId, childId, db);
+  if (!child) {
+    return { ok: false, error: "Child is not accessible." };
+  }
+
+  const name = input.name.trim();
+  if (!name) {
+    return { ok: false, error: "Child name is required." };
+  }
+
+  const birthday = new Date(`${input.birthday}T00:00:00.000Z`);
+  if (Number.isNaN(birthday.getTime())) {
+    return { ok: false, error: "Birthday is invalid." };
+  }
+
+  if (!db.child.update) {
+    return { ok: false, error: "Child update is not available." };
+  }
+
+  await db.child.update({
+    where: { id: child.id },
+    data: {
+      name,
+      birthday,
+      gender: input.gender?.trim() || null,
+      notes: input.notes?.trim() || null,
+    },
+  });
+
+  return { ok: true, childId: child.id };
 }
 
 export async function setCurrentChild(

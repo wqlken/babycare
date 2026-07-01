@@ -5,6 +5,7 @@ export type TimelineItem = {
   time: Date;
   creatorDisplayName: string;
   notes: string | null;
+  amountMl?: number | null;
 };
 
 type FeedingInput = {
@@ -61,6 +62,7 @@ export function buildTimelineItems(input: {
       time: feeding.endTime ?? feeding.startTime,
       creatorDisplayName: feeding.creatorDisplayName,
       notes: feeding.notes,
+      amountMl: feeding.amountMl,
     })),
     ...input.diapers.map((diaper) => ({
       id: diaper.id,

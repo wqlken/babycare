@@ -2,6 +2,8 @@ import { describe, expect, test, vi } from "vitest";
 import {
   authenticateUser,
   registerUser,
+  updatePassword,
+  updateProfile,
   type AuthDatabase,
 } from "@/lib/auth/service";
 
@@ -28,6 +30,22 @@ function createAuthDatabase(): AuthDatabase {
       }),
       findUnique: vi.fn(async ({ where }) => {
         return users.find((user) => user.email === where.email) ?? null;
+      }),
+      findFirst: vi.fn(async ({ where }) => {
+        return (
+          users.find(
+            (user) =>
+              user.id === where.id ||
+              (user.email === where.email && user.id !== where.NOT?.id),
+          ) ?? null
+        );
+      }),
+      update: vi.fn(async ({ where, data }) => {
+        const user = users.find((item) => item.id === where.id);
+        if (!user) throw new Error("User not found.");
+        user.displayName = data.displayName ?? user.displayName;
+        user.passwordHash = data.passwordHash ?? user.passwordHash;
+        return user;
       }),
     },
     family: {
@@ -150,5 +168,97 @@ describe("authentication rules", () => {
         db,
       ),
     ).resolves.toEqual({ ok: true, userId: "user-1" });
+  });
+
+  test("users can update their display name", async () => {
+    const db = createAuthDatabase();
+
+    await registerUser(
+      {
+        email: "owner@example.com",
+        password: "babycare123",
+        displayName: "Owner",
+      },
+      db,
+    );
+
+    await expect(
+      updateProfile(
+        "user-1",
+        {
+          displayName: "Parent",
+        },
+        db,
+      ),
+    ).resolves.toEqual({ ok: true });
+    await expect(
+      authenticateUser(
+        {
+          email: "owner@example.com",
+          password: "babycare123",
+        },
+        db,
+      ),
+    ).resolves.toEqual({ ok: true, userId: "user-1" });
+  });
+
+  test("users can update password with current password", async () => {
+    const db = createAuthDatabase();
+
+    await registerUser(
+      {
+        email: "owner@example.com",
+        password: "babycare123",
+        displayName: "Owner",
+      },
+      db,
+    );
+
+    await expect(
+      updatePassword(
+        "user-1",
+        {
+          currentPassword: "babycare123",
+          newPassword: "newpassword123",
+        },
+        db,
+      ),
+    ).resolves.toEqual({ ok: true });
+    await expect(
+      authenticateUser(
+        {
+          email: "owner@example.com",
+          password: "newpassword123",
+        },
+        db,
+      ),
+    ).resolves.toEqual({ ok: true, userId: "user-1" });
+  });
+
+  test("password update rejects invalid current password", async () => {
+    const db = createAuthDatabase();
+
+    await registerUser(
+      {
+        email: "owner@example.com",
+        password: "babycare123",
+        displayName: "Owner",
+      },
+      db,
+    );
+
+    await expect(
+      updatePassword(
+        "user-1",
+        {
+          currentPassword: "wrong-password",
+          newPassword: "newpassword123",
+        },
+        db,
+      ),
+    ).resolves.toEqual({
+      ok: false,
+      error: "Current password is incorrect.",
+    });
   });
 });

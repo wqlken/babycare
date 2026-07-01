@@ -20,6 +20,26 @@ export type AuthDatabase = {
     findUnique: (args: {
       where: { email: string };
     }) => Promise<{ id: string; passwordHash: string } | null>;
+    findFirst?: (args: {
+      where: {
+        id?: string;
+        email?: string;
+        NOT?: { id: string };
+      };
+    }) => Promise<{
+      id: string;
+      email: string;
+      passwordHash: string;
+      displayName: string;
+    } | null>;
+    update?: (args: {
+      where: { id: string };
+      data: {
+        email?: string;
+        displayName?: string;
+        passwordHash?: string;
+      };
+    }) => Promise<unknown>;
   };
   family: {
     create: (args: {
@@ -83,6 +103,8 @@ export type LoginInput = {
 export type AuthResult =
   | { ok: true; userId: string }
   | { ok: false; error: string };
+
+type AccountResult = { ok: true } | { ok: false; error: string };
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -182,4 +204,91 @@ export async function authenticateUser(
   }
 
   return { ok: true, userId: user.id };
+}
+
+export async function updateProfile(
+  userId: string,
+  input: {
+    displayName: string;
+    email?: string;
+  },
+  db: AuthDatabase = prisma,
+): Promise<AccountResult> {
+  if (!db.user.update) {
+    return { ok: false, error: "Profile update is not available." };
+  }
+
+  const displayName = input.displayName.trim();
+  if (!displayName) {
+    return { ok: false, error: "Display name is required." };
+  }
+
+  const data: { displayName: string; email?: string } = { displayName };
+
+  if (input.email !== undefined) {
+    const email = normalizeEmail(input.email);
+    if (!email) {
+      return { ok: false, error: "Email is required." };
+    }
+
+    if (db.user.findFirst) {
+      const existing = await db.user.findFirst({
+        where: {
+          email,
+          NOT: { id: userId },
+        },
+      });
+
+      if (existing) {
+        return { ok: false, error: "Email is already in use." };
+      }
+    }
+
+    data.email = email;
+  }
+
+  await db.user.update({
+    where: { id: userId },
+    data,
+  });
+
+  return { ok: true };
+}
+
+export async function updatePassword(
+  userId: string,
+  input: {
+    currentPassword: string;
+    newPassword: string;
+  },
+  db: AuthDatabase = prisma,
+): Promise<AccountResult> {
+  if (!db.user.findFirst || !db.user.update) {
+    return { ok: false, error: "Password update is not available." };
+  }
+
+  const user = await db.user.findFirst({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (!user) {
+    return { ok: false, error: "User not found." };
+  }
+
+  if (!(await verifyPassword(input.currentPassword, user.passwordHash))) {
+    return { ok: false, error: "Current password is incorrect." };
+  }
+
+  const passwordHash = await hashPassword(input.newPassword);
+
+  await db.user.update({
+    where: { id: userId },
+    data: {
+      passwordHash,
+    },
+  });
+
+  return { ok: true };
 }

@@ -6,6 +6,7 @@ import {
   createBottleFeeding,
   startBreastfeeding,
   stopBreastfeeding,
+  updateBottleFeeding,
 } from "@/lib/records/service";
 
 function redirectWithError(childId: string, target: string, error: string) {
@@ -67,4 +68,22 @@ export async function stopBreastfeedingAction(formData: FormData) {
   }
 
   redirect("/");
+}
+
+export async function updateBottleFeedingAction(formData: FormData) {
+  const user = await requireUser();
+  const childId = String(formData.get("childId") ?? "");
+  const recordId = String(formData.get("recordId") ?? "");
+  const result = await updateBottleFeeding(user.id, {
+    childId,
+    recordId,
+    amountMl: Number(formData.get("amountMl")),
+    notes: String(formData.get("notes") ?? ""),
+  });
+
+  if (!result.ok) {
+    redirect(`/children/${childId}/timeline?error=${encodeURIComponent(result.error)}`);
+  }
+
+  redirect(`/children/${childId}/timeline`);
 }

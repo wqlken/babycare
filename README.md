@@ -2,6 +2,32 @@
 
 Babycare is a self-hosted family baby tracking app for feeding, diapers, and sleep. It runs as a Next.js application with PostgreSQL through Docker Compose.
 
+## Features
+
+- Bootstrap registration creates the first owner and family workspace.
+- Later registrations require an email-bound invitation link.
+- Family owners can invite and remove caregivers.
+- Baby profiles include name, birthday, gender, and notes.
+- The dashboard shows current child context, quick actions, active timers, recent records, and daily totals.
+- Feeding, diaper, and sleep records can be created from mobile-friendly forms.
+- Breastfeeding and sleep support start/stop timer flows.
+- Timeline shows recent records, notes, creator names, owner delete controls, and bottle feeding edit controls.
+- Account settings support display name, email, and password updates.
+
+## Application Routes
+
+- `/login`: account login.
+- `/register`: first-owner registration or invite acceptance.
+- `/`: current child dashboard.
+- `/children`: first child creation flow.
+- `/children/[childId]`: baby profile settings.
+- `/children/[childId]/feedings/new`: feeding logging.
+- `/children/[childId]/diapers/new`: diaper logging.
+- `/children/[childId]/sleep`: sleep timer start flow.
+- `/children/[childId]/timeline`: recent activity timeline.
+- `/settings/family`: family members and invitations.
+- `/settings/account`: profile and password settings.
+
 ## Docker
 
 1. Copy `.env.example` to `.env`.
@@ -21,6 +47,8 @@ The app container runs `npx prisma migrate deploy` before starting Next.js.
 npm install
 npm run dev
 npm test
+npx tsc --noEmit
+npm run lint
 npm run build
 ```
 

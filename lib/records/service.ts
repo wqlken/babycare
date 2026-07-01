@@ -34,12 +34,21 @@ type SleepRecordCreateInput = {
 
 type ActiveFeedingRecord = {
   id: string;
+  childId?: string;
+  creatorId?: string;
   startTime?: Date;
+  endTime?: Date | null;
+  amountMl?: number | null;
+  notes?: string | null;
 };
 
 type ActiveSleepRecord = {
   id: string;
+  childId?: string;
+  creatorId?: string;
   startTime?: Date;
+  endTime?: Date | null;
+  notes?: string | null;
 };
 
 export type RecordsDatabase = {
@@ -67,9 +76,10 @@ export type RecordsDatabase = {
   feedingRecord: {
     findFirst: (args: {
       where: {
-        childId: string;
-        type: "breast";
-        endTime: null;
+        childId?: string;
+        id?: string;
+        type?: "breast";
+        endTime?: null;
       };
     }) => Promise<ActiveFeedingRecord | null>;
     create: (args: {
@@ -77,10 +87,26 @@ export type RecordsDatabase = {
     }) => Promise<{ id: string }>;
     update: (args: {
       where: { id: string };
-      data: { endTime: Date };
+      data: {
+        endTime?: Date;
+        amountMl?: number;
+        notes?: string | null;
+      };
     }) => Promise<{ id: string }>;
+    delete: (args: { where: { id: string } }) => Promise<{ id: string }>;
   };
   diaperRecord: {
+    findFirst?: (args: {
+      where: {
+        childId?: string;
+        id?: string;
+      };
+    }) => Promise<{
+      id: string;
+      childId?: string;
+      creatorId?: string;
+      notes?: string | null;
+    } | null>;
     create: (args: {
       data: {
         childId: string;
@@ -91,12 +117,18 @@ export type RecordsDatabase = {
         notes?: string | null;
       };
     }) => Promise<{ id: string }>;
+    update?: (args: {
+      where: { id: string };
+      data: { notes?: string | null };
+    }) => Promise<{ id: string }>;
+    delete: (args: { where: { id: string } }) => Promise<{ id: string }>;
   };
   sleepRecord: {
     findFirst: (args: {
       where: {
-        childId: string;
-        endTime: null;
+        childId?: string;
+        id?: string;
+        endTime?: null;
       };
     }) => Promise<ActiveSleepRecord | null>;
     create: (args: {
@@ -104,14 +136,20 @@ export type RecordsDatabase = {
     }) => Promise<{ id: string }>;
     update: (args: {
       where: { id: string };
-      data: { endTime: Date };
+      data: {
+        endTime?: Date;
+        notes?: string | null;
+      };
     }) => Promise<{ id: string }>;
+    delete: (args: { where: { id: string } }) => Promise<{ id: string }>;
   };
 };
 
 type RecordResult =
   | { ok: true; recordId: string }
   | { ok: false; error: string };
+
+type DeleteRecordResult = { ok: true } | { ok: false; error: string };
 
 async function getRecordContext(
   userId: string,
@@ -154,6 +192,14 @@ async function getRecordContext(
 function cleanNotes(notes?: string | null) {
   const trimmed = notes?.trim();
   return trimmed ? trimmed : null;
+}
+
+function canEditRecord(
+  membership: MembershipRecord,
+  userId: string,
+  record: { creatorId?: string },
+) {
+  return membership.role === "owner" || record.creatorId === userId;
 }
 
 export async function createBottleFeeding(
@@ -361,4 +407,113 @@ export async function stopSleep(
   });
 
   return { ok: true, recordId: record.id };
+}
+
+export async function updateBottleFeeding(
+  userId: string,
+  input: {
+    childId: string;
+    recordId: string;
+    amountMl: number;
+    notes?: string | null;
+  },
+  db: RecordsDatabase = prisma,
+): Promise<RecordResult> {
+  if (!Number.isInteger(input.amountMl) || input.amountMl <= 0) {
+    return { ok: false, error: "Bottle amount must be a positive milliliter value." };
+  }
+
+  const context = await getRecordContext(userId, input.childId, db);
+  if (!context.ok) return context;
+
+  const existing = await db.feedingRecord.findFirst({
+    where: {
+      id: input.recordId,
+      childId: context.child.id,
+    },
+  });
+
+  if (!existing) {
+    return { ok: false, error: "Record is not accessible." };
+  }
+
+  if (!canEditRecord(context.membership, context.user.id, existing)) {
+    return {
+      ok: false,
+      error: "Only owners or record creators can edit records.",
+    };
+  }
+
+  const record = await db.feedingRecord.update({
+    where: { id: existing.id },
+    data: {
+      amountMl: input.amountMl,
+      notes: cleanNotes(input.notes),
+    },
+  });
+
+  return { ok: true, recordId: record.id };
+}
+
+export async function deleteRecord(
+  userId: string,
+  input: {
+    childId: string;
+    kind: "feeding" | "diaper" | "sleep";
+    recordId: string;
+  },
+  db: RecordsDatabase = prisma,
+): Promise<DeleteRecordResult> {
+  const context = await getRecordContext(userId, input.childId, db);
+  if (!context.ok) return context;
+
+  if (context.membership.role !== "owner") {
+    return { ok: false, error: "Only owners can delete records." };
+  }
+
+  if (input.kind === "feeding") {
+    const record = await db.feedingRecord.findFirst({
+      where: {
+        id: input.recordId,
+        childId: context.child.id,
+      },
+    });
+
+    if (!record) {
+      return { ok: false, error: "Record is not accessible." };
+    }
+
+    await db.feedingRecord.delete({ where: { id: record.id } });
+    return { ok: true };
+  }
+
+  if (input.kind === "diaper") {
+    const record = await db.diaperRecord.findFirst?.({
+      where: {
+        id: input.recordId,
+        childId: context.child.id,
+      },
+    });
+
+    if (!record) {
+      return { ok: false, error: "Record is not accessible." };
+    }
+
+    await db.diaperRecord.delete({ where: { id: record.id } });
+    return { ok: true };
+  }
+
+  const record = await db.sleepRecord.findFirst({
+    where: {
+      id: input.recordId,
+      childId: context.child.id,
+    },
+  });
+
+  if (!record) {
+    return { ok: false, error: "Record is not accessible." };
+  }
+
+  await db.sleepRecord.delete({ where: { id: record.id } });
+  return { ok: true };
 }

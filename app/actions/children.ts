@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/guards";
-import { createChild, setCurrentChild } from "@/lib/children/service";
+import { createChild, setCurrentChild, updateChild } from "@/lib/children/service";
 
 export async function createChildAction(formData: FormData) {
   const user = await requireUser();
@@ -30,4 +30,21 @@ export async function setCurrentChildAction(formData: FormData) {
   }
 
   redirect("/");
+}
+
+export async function updateChildAction(formData: FormData) {
+  const user = await requireUser();
+  const childId = String(formData.get("childId") ?? "");
+  const result = await updateChild(user.id, childId, {
+    name: String(formData.get("name") ?? ""),
+    birthday: String(formData.get("birthday") ?? ""),
+    gender: String(formData.get("gender") ?? ""),
+    notes: String(formData.get("notes") ?? ""),
+  });
+
+  if (!result.ok) {
+    redirect(`/children/${childId}?error=${encodeURIComponent(result.error)}`);
+  }
+
+  redirect(`/children/${childId}?saved=profile`);
 }

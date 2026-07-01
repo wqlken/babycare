@@ -38,6 +38,21 @@ export type FamilyDatabase = {
         role: "caregiver";
       };
     }) => Promise<unknown>;
+    count?: (args: {
+      where: {
+        familyId: string;
+        role: "owner";
+        removedAt: null;
+      };
+    }) => Promise<number>;
+    findUnique?: (args: {
+      where: { id: string };
+      include?: { user: true };
+    }) => Promise<Membership & { id: string; userId: string } | null>;
+    update?: (args: {
+      where: { id: string };
+      data: { removedAt: Date };
+    }) => Promise<unknown>;
   };
   invite: {
     create: (args: {
@@ -263,4 +278,64 @@ export async function listFamilyMembers(userId: string) {
       joinedAt: "asc",
     },
   });
+}
+
+export async function removeFamilyMember(
+  userId: string,
+  input: {
+    memberId: string;
+    now?: Date;
+  },
+  db: FamilyDatabase = prisma,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const actor = await db.familyMember.findFirst({
+    where: {
+      userId,
+      removedAt: null,
+    },
+  });
+
+  if (!actor) {
+    return { ok: false, error: "Active family membership is required." };
+  }
+
+  if (actor.role !== "owner") {
+    return { ok: false, error: "Only owners can manage family members." };
+  }
+
+  if (!db.familyMember.findUnique || !db.familyMember.update || !db.familyMember.count) {
+    return { ok: false, error: "Family member management is not available." };
+  }
+
+  const target = await db.familyMember.findUnique({
+    where: { id: input.memberId },
+    include: { user: true },
+  });
+
+  if (!target || target.familyId !== actor.familyId || target.removedAt) {
+    return { ok: false, error: "Family member is not accessible." };
+  }
+
+  if (target.role === "owner") {
+    const ownerCount = await db.familyMember.count({
+      where: {
+        familyId: actor.familyId,
+        role: "owner",
+        removedAt: null,
+      },
+    });
+
+    if (ownerCount <= 1) {
+      return { ok: false, error: "A family must keep at least one owner." };
+    }
+  }
+
+  await db.familyMember.update({
+    where: { id: target.id },
+    data: {
+      removedAt: input.now ?? new Date(),
+    },
+  });
+
+  return { ok: true };
 }

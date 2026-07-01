@@ -3,10 +3,11 @@ import {
   createChild,
   getChildDashboardTarget,
   setCurrentChild,
+  updateChild,
   type ChildrenDatabase,
 } from "@/lib/children/service";
 
-function createChildrenDatabase(): ChildrenDatabase {
+function createChildrenDatabase(role: "owner" | "caregiver" = "owner"): ChildrenDatabase {
   const children: Array<{
     id: string;
     familyId: string;
@@ -23,7 +24,7 @@ function createChildrenDatabase(): ChildrenDatabase {
     familyMember: {
       findFirst: vi.fn(async () => ({
         familyId: "family-1",
-        role: "owner" as const,
+        role,
         removedAt: null,
       })),
     },
@@ -40,6 +41,25 @@ function createChildrenDatabase(): ChildrenDatabase {
           archivedAt: null,
         };
         children.push(child);
+        return child;
+      }),
+      findFirst: vi.fn(async ({ where }) => {
+        return (
+          children.find(
+            (child) =>
+              child.id === where.id &&
+              child.familyId === where.familyId &&
+              child.archivedAt === where.archivedAt,
+          ) ?? null
+        );
+      }),
+      update: vi.fn(async ({ where, data }) => {
+        const child = children.find((item) => item.id === where.id);
+        if (!child) throw new Error("Child not found.");
+        child.name = data.name ?? child.name;
+        child.birthday = data.birthday ?? child.birthday;
+        child.gender = data.gender ?? child.gender;
+        child.notes = data.notes ?? child.notes;
         return child;
       }),
     },
@@ -91,6 +111,70 @@ describe("child onboarding", () => {
     await expect(getChildDashboardTarget("user-1", db)).resolves.toEqual({
       kind: "child",
       childId: "child-1",
+    });
+  });
+
+  test("caregivers cannot create children", async () => {
+    const db = createChildrenDatabase("caregiver");
+
+    await expect(
+      createChild(
+        "caregiver-1",
+        {
+          name: "宝宝",
+          birthday: "2026-01-01",
+        },
+        db,
+      ),
+    ).resolves.toEqual({
+      ok: false,
+      error: "Only owners can manage children.",
+    });
+  });
+
+  test("owners can update accessible child profile", async () => {
+    const db = createChildrenDatabase("owner");
+
+    await createChild(
+      "owner-1",
+      {
+        name: "宝宝",
+        birthday: "2026-01-01",
+      },
+      db,
+    );
+
+    await expect(
+      updateChild(
+        "owner-1",
+        "child-1",
+        {
+          name: "小宝",
+          birthday: "2026-02-01",
+          gender: "female",
+          notes: "爱睡觉",
+        },
+        db,
+      ),
+    ).resolves.toEqual({ ok: true, childId: "child-1" });
+  });
+
+  test("caregivers cannot update child profile", async () => {
+    const db = createChildrenDatabase("caregiver");
+
+    await expect(
+      updateChild(
+        "caregiver-1",
+        "child-1",
+        {
+          name: "小宝",
+          birthday: "2026-02-01",
+        },
+        db,
+      ),
+    ).resolves.toEqual({
+      ok: false,
+      error: "Only owners can manage children.",
     });
   });
 
