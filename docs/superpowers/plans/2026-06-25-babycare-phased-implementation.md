@@ -8,6 +8,13 @@
 
 **Tech Stack:** Next.js, TypeScript, Prisma, PostgreSQL, Tailwind CSS, Playwright or Vitest where appropriate, Docker Compose.
 
+**Current Status (2026-07-01):**
+
+- Phase V1 is implemented on `main`.
+- V1 implementation also includes follow-up management polish that was added after the original task list: baby profile settings, account profile/password settings, family member removal with last-owner protection, owner record deletion from the timeline, and bottle feeding edit controls.
+- Phase V1.1 and Phase V1.2 remain incomplete and should be implemented in later tasks.
+- Latest verified commands on `main`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
+
 ---
 
 ## File Structure
@@ -113,7 +120,7 @@ Responsibilities:
 - Create: `docker-compose.yml`
 - Create: `.env.example`
 
-- [ ] **Step 1: Initialize the app dependencies**
+- [x] **Step 1: Initialize the app dependencies**
 
 Run:
 
@@ -125,7 +132,7 @@ npm install -D vitest tsx @types/bcryptjs
 
 Expected: `package.json`, `app/`, `next.config.*`, and Tailwind files exist.
 
-- [ ] **Step 2: Add environment example**
+- [x] **Step 2: Add environment example**
 
 Create `.env.example`:
 
@@ -136,7 +143,7 @@ APP_URL=http://localhost:3000
 FAMILY_TIMEZONE=Asia/Shanghai
 ```
 
-- [ ] **Step 3: Add Docker Compose**
+- [x] **Step 3: Add Docker Compose**
 
 Create `docker-compose.yml`:
 
@@ -171,7 +178,7 @@ volumes:
   postgres-data:
 ```
 
-- [ ] **Step 4: Add Dockerfile**
+- [x] **Step 4: Add Dockerfile**
 
 Create `Dockerfile`:
 
@@ -200,7 +207,7 @@ EXPOSE 3000
 CMD ["npm", "run", "start"]
 ```
 
-- [ ] **Step 5: Verify scaffold**
+- [x] **Step 5: Verify scaffold**
 
 Run:
 
@@ -211,7 +218,7 @@ npm run build
 
 Expected: both commands pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add package.json package-lock.json tsconfig.json next.config.* app Dockerfile docker-compose.yml .env.example
@@ -225,7 +232,7 @@ git commit -m "chore: scaffold Next.js Docker app"
 - Create: `lib/db.ts`
 - Test: `tests/integration/schema.test.ts`
 
-- [ ] **Step 1: Define Prisma schema**
+- [x] **Step 1: Define Prisma schema**
 
 Create `prisma/schema.prisma`:
 
@@ -388,7 +395,7 @@ model SleepRecord {
 }
 ```
 
-- [ ] **Step 2: Add Prisma client helper**
+- [x] **Step 2: Add Prisma client helper**
 
 Create `lib/db.ts`:
 
@@ -408,7 +415,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 ```
 
-- [ ] **Step 3: Generate migration**
+- [x] **Step 3: Generate migration**
 
 Run:
 
@@ -419,7 +426,7 @@ npx prisma generate
 
 Expected: migration created and Prisma client generated.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add prisma lib/db.ts
@@ -437,7 +444,7 @@ git commit -m "feat: add core data schema"
 - Create: `app/(auth)/register/page.tsx`
 - Test: `tests/integration/auth.test.ts`
 
-- [ ] **Step 1: Add password helpers**
+- [x] **Step 1: Add password helpers**
 
 Create `lib/auth/password.ts`:
 
@@ -456,7 +463,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 ```
 
-- [ ] **Step 2: Add cookie-based session helper**
+- [x] **Step 2: Add cookie-based session helper**
 
 Create `lib/auth/session.ts`:
 
@@ -489,15 +496,15 @@ export async function clearSession() {
 }
 ```
 
-- [ ] **Step 3: Add registration/login actions**
+- [x] **Step 3: Add registration/login actions**
 
 Create `app/actions/auth.ts` with actions for bootstrap registration, invite registration, login, and logout. The first registration creates `Family`, `FamilyMember(owner)`, and `UserPreference`. Later registration without invite returns an error.
 
-- [ ] **Step 4: Add auth pages**
+- [x] **Step 4: Add auth pages**
 
 Create login and register pages with email/password/display name forms that call the server actions.
 
-- [ ] **Step 5: Test auth rules**
+- [x] **Step 5: Test auth rules**
 
 Run:
 
@@ -507,7 +514,7 @@ npm test -- tests/integration/auth.test.ts
 
 Expected: bootstrap registration passes; second public registration fails; login succeeds with valid credentials.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add lib/auth app/actions/auth.ts "app/(auth)"
@@ -525,23 +532,23 @@ git commit -m "feat: add bootstrap authentication"
 - Modify: `app/(app)/page.tsx`
 - Test: `tests/integration/children.test.ts`
 
-- [ ] **Step 1: Add child actions**
+- [x] **Step 1: Add child actions**
 
 Implement create child, set current child, and list accessible children. V1 should block hard delete.
 
-- [ ] **Step 2: Add app layout guard**
+- [x] **Step 2: Add app layout guard**
 
 App layout requires an authenticated user and active family membership. If no child exists, route to `/children`.
 
-- [ ] **Step 3: Add child list/create page**
+- [x] **Step 3: Add child list/create page**
 
 Create a form for name, birthday, gender, and notes. After creation, set `currentChildId`.
 
-- [ ] **Step 4: Add child switcher**
+- [x] **Step 4: Add child switcher**
 
 Render child name and day/month age. Allow switching current child.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run:
 
@@ -551,7 +558,7 @@ npm test -- tests/integration/children.test.ts
 
 Expected: no-child users route to child creation; creating a child sets current child.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add app components tests/integration/children.test.ts
@@ -568,19 +575,19 @@ git commit -m "feat: add child onboarding"
 - Test: `tests/unit/units.test.ts`
 - Test: `tests/unit/summaries.test.ts`
 
-- [ ] **Step 1: Add time helpers**
+- [x] **Step 1: Add time helpers**
 
 Implement Asia/Shanghai day boundaries, child age display, and overlap duration splitting.
 
-- [ ] **Step 2: Add unit helpers**
+- [x] **Step 2: Add unit helpers**
 
 Implement ml/oz conversion with internal ml storage.
 
-- [ ] **Step 3: Add summary helpers**
+- [x] **Step 3: Add summary helpers**
 
 Implement today totals and 7-day summary inputs/outputs.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run:
 
@@ -590,7 +597,7 @@ npm test -- tests/unit/time.test.ts tests/unit/units.test.ts tests/unit/summarie
 
 Expected: cross-midnight sleep splits correctly; oz input converts to ml.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add lib/time.ts lib/units.ts lib/summaries.ts tests/unit
@@ -609,23 +616,23 @@ git commit -m "feat: add time and summary helpers"
 - Create: route pages under `app/(app)/children/[childId]/...`
 - Test: `tests/integration/records.test.ts`
 
-- [ ] **Step 1: Add feeding actions**
+- [x] **Step 1: Add feeding actions**
 
 Support bottle one-shot records and breastfeeding start/stop with one active breastfeeding per child.
 
-- [ ] **Step 2: Add diaper actions**
+- [x] **Step 2: Add diaper actions**
 
 Support wet/dirty/both records with notes.
 
-- [ ] **Step 3: Add sleep actions**
+- [x] **Step 3: Add sleep actions**
 
 Support sleep start/stop and backfill with one active sleep per child.
 
-- [ ] **Step 4: Add forms and pages**
+- [x] **Step 4: Add forms and pages**
 
 Create mobile-first forms. Keep optional details collapsed by default.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run:
 
@@ -635,7 +642,7 @@ npm test -- tests/integration/records.test.ts
 
 Expected: records create successfully, duplicate active sleep/breastfeeding fails.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add app/actions components/forms "app/(app)/children" tests/integration/records.test.ts
@@ -651,19 +658,19 @@ git commit -m "feat: add core baby records"
 - Modify: `app/(app)/page.tsx`
 - Create: `app/(app)/children/[childId]/timeline/page.tsx`
 
-- [ ] **Step 1: Build dashboard query**
+- [x] **Step 1: Build dashboard query**
 
 Load current child, active timers, last records, and today totals.
 
-- [ ] **Step 2: Render dashboard**
+- [x] **Step 2: Render dashboard**
 
 Render summary cards, active timers, and quick actions.
 
-- [ ] **Step 3: Build timeline**
+- [x] **Step 3: Build timeline**
 
 List feeding, diaper, and sleep records by date. Show creator display name and notes in details.
 
-- [ ] **Step 4: Run build**
+- [x] **Step 4: Run build**
 
 Run:
 
@@ -673,7 +680,7 @@ npm run build
 
 Expected: build passes.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add app components/dashboard
@@ -687,19 +694,19 @@ git commit -m "feat: add dashboard and timeline"
 - Create: `app/(app)/settings/family/page.tsx`
 - Test: `tests/integration/permissions.test.ts`
 
-- [ ] **Step 1: Add invite creation**
+- [x] **Step 1: Add invite creation**
 
 Owner creates invite token bound to email. Store token hash and expiry.
 
-- [ ] **Step 2: Add invite acceptance**
+- [x] **Step 2: Add invite acceptance**
 
 Register/login with invite token and matching email joins family.
 
-- [ ] **Step 3: Add family settings UI**
+- [x] **Step 3: Add family settings UI**
 
 Show members and generated invite link. No email sending in V1.
 
-- [ ] **Step 4: Run permissions tests**
+- [x] **Step 4: Run permissions tests**
 
 Run:
 
@@ -709,7 +716,7 @@ npm test -- tests/integration/permissions.test.ts
 
 Expected: cross-family access blocked; mismatched invite email rejected.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add app/actions/family.ts "app/(app)/settings/family" tests/integration/permissions.test.ts
@@ -723,7 +730,7 @@ git commit -m "feat: add family invitations"
 - Create: `scripts/restore-db.ps1`
 - Modify: `README.md`
 
-- [ ] **Step 1: Add backup script**
+- [x] **Step 1: Add backup script**
 
 Create `scripts/backup-db.ps1`:
 
@@ -734,7 +741,7 @@ docker compose exec -T postgres pg_dump -U babycare -d babycare | Out-File -Enco
 Write-Host "Backup written to .\backups\babycare-$timestamp.sql"
 ```
 
-- [ ] **Step 2: Add restore script**
+- [x] **Step 2: Add restore script**
 
 Create `scripts/restore-db.ps1`:
 
@@ -744,7 +751,7 @@ Get-Content $Path | docker compose exec -T postgres psql -U babycare -d babycare
 Write-Host "Restore completed from $Path"
 ```
 
-- [ ] **Step 3: Document Docker flow**
+- [x] **Step 3: Document Docker flow**
 
 Update `README.md` with:
 
@@ -758,7 +765,7 @@ Update `README.md` with:
 5. Restore with `powershell -File scripts/restore-db.ps1 -Path backups/<file>.sql`.
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add scripts README.md

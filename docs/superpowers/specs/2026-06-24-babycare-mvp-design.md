@@ -8,6 +8,16 @@ Build a stable self-hosted baby care tracking app for the user's family. The fir
 
 The full design remains the target product direction, but implementation should be delivered in phases so the first Docker deployment becomes usable before every refinement is complete.
 
+## Current Implementation Status
+
+Status as of 2026-07-01:
+
+- V1 core family logging is implemented on `main`.
+- Implemented V1 scope includes bootstrap registration, invite-bound registration, login/logout, first-child onboarding, current child preference, baby profile editing, account settings, family invitations, caregiver removal with last-owner protection, feeding/diaper/sleep logging, breastfeeding and sleep start/stop timers, dashboard summaries, recent records, timeline display, owner record deletion, bottle feeding edit controls, Docker Compose, and manual backup/restore scripts.
+- V1 implementation uses hard deletion for owner record delete controls. V1.1 still needs soft deletion and optimistic concurrency before record editing/deletion is considered data-ownership complete.
+- V1.1 and V1.2 remain planned follow-up phases. Their incomplete items are listed in their phase sections below.
+- Latest verified commands on `main`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
+
 ### V1: Core Family Logging
 
 V1 includes:
