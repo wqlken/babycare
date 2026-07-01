@@ -12,8 +12,8 @@
 
 - Phase V1 is implemented on `main`.
 - V1 implementation also includes follow-up management polish that was added after the original task list: baby profile settings, account profile/password settings, family member removal with last-owner protection, owner record deletion from the timeline, and bottle feeding edit controls.
-- Phase V1.1 has started: Task 10 soft deletion, edited metadata, optimistic bottle editing, and Task 11 owner CSV export are implemented on `feat/v1-safe-record-editing`.
-- Remaining V1.1 tasks are family administration, seven-day summary, and PWA/network handling. Phase V1.2 remains incomplete.
+- Phase V1.1 has started: Task 10 soft deletion, edited metadata, optimistic bottle editing, Task 11 owner CSV export, and Task 12 family administration are implemented on `feat/v1-safe-record-editing`.
+- Remaining V1.1 task is seven-day summary plus PWA/network handling. Phase V1.2 remains incomplete.
 - Latest verified commands on `feat/v1-safe-record-editing`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
 
 ---
@@ -812,12 +812,12 @@ git commit -m "docs: add Docker backup workflow"
 - Modify: `app/(app)/settings/family/page.tsx`
 - Test: `tests/integration/permissions.test.ts`
 
-- [ ] Add owner-only role promotion/demotion.
-- [ ] Block removing or demoting the last owner.
-- [ ] Add owner reset temporary password for caregivers.
-- [ ] Invalidate affected user sessions.
-- [ ] Run permissions tests.
-- [ ] Commit with `feat: add family administration`.
+- [x] Add owner-only role promotion/demotion.
+- [x] Block removing or demoting the last owner.
+- [x] Add owner reset temporary password for caregivers.
+- [x] Invalidate affected user sessions.
+- [x] Run permissions tests.
+- [x] Commit with `feat: add family administration`.
 
 ### Task 13: Seven-Day Summary and PWA Metadata
 

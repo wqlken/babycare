@@ -1,6 +1,8 @@
 import {
   createInviteAction,
+  resetCaregiverPasswordAction,
   removeFamilyMemberAction,
+  updateFamilyMemberRoleAction,
 } from "@/app/actions/family";
 import { requireUser } from "@/lib/auth/guards";
 import { listFamilyMembers } from "@/lib/family/service";
@@ -10,6 +12,7 @@ type PageProps = {
     error?: string;
     invite?: string;
     saved?: string;
+    temporaryPassword?: string;
   }>;
 };
 
@@ -44,6 +47,14 @@ export default async function FamilySettingsPage({ searchParams }: PageProps) {
           已更新家庭成员。
         </p>
       ) : null}
+      {query?.temporaryPassword ? (
+        <div className="rounded border border-amber-200 bg-amber-50 p-4">
+          <p className="text-sm font-medium text-amber-900">临时密码</p>
+          <p className="mt-2 font-mono text-sm text-amber-950">
+            {query.temporaryPassword}
+          </p>
+        </div>
+      ) : null}
       <form action={createInviteAction} className="space-y-3 rounded border border-slate-200 bg-white p-4">
         <label className="block">
           <span className="text-sm font-medium text-slate-700">邀请邮箱</span>
@@ -67,6 +78,29 @@ export default async function FamilySettingsPage({ searchParams }: PageProps) {
             <p className="font-medium text-slate-950">{member.user.displayName}</p>
             <p className="text-sm text-slate-500">{member.user.email}</p>
             <p className="mt-1 text-sm text-slate-700">{member.role}</p>
+            {member.userId !== user.id ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                <form action={updateFamilyMemberRoleAction}>
+                  <input name="memberId" type="hidden" value={member.id} />
+                  <input
+                    name="role"
+                    type="hidden"
+                    value={member.role === "owner" ? "caregiver" : "owner"}
+                  />
+                  <button className="rounded border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700">
+                    {member.role === "owner" ? "降为照护者" : "设为 Owner"}
+                  </button>
+                </form>
+                {member.role === "caregiver" ? (
+                  <form action={resetCaregiverPasswordAction}>
+                    <input name="memberId" type="hidden" value={member.id} />
+                    <button className="rounded border border-amber-200 px-3 py-1.5 text-sm font-medium text-amber-700">
+                      重置临时密码
+                    </button>
+                  </form>
+                ) : null}
+              </div>
+            ) : null}
             {member.userId !== user.id ? (
               <form action={removeFamilyMemberAction} className="mt-3">
                 <input name="memberId" type="hidden" value={member.id} />

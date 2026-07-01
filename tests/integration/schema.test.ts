@@ -81,4 +81,14 @@ describe("Prisma schema", () => {
     expect(migration).toContain("unique_active_sleep_record_per_child");
     expect(migration).toContain("unique_active_breastfeeding_record_per_child");
   });
+
+  test("defines session revocation timestamp for password resets", () => {
+    const schema = readProjectFile("prisma/schema.prisma");
+    const migration = readProjectFile(
+      "prisma/migrations/000003_family_administration/migration.sql",
+    );
+
+    expect(schema).toContain("sessionRevokedAt");
+    expect(migration).toContain('ADD COLUMN "sessionRevokedAt" TIMESTAMP(3)');
+  });
 });
