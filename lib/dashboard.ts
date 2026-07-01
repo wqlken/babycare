@@ -13,17 +13,17 @@ export async function getDashboardData(userId: string, childId: string) {
 
   const [feedings, diapers, sleeps] = await Promise.all([
     prisma.feedingRecord.findMany({
-      where: { childId },
+      where: { childId, deletedAt: null },
       orderBy: { startTime: "desc" },
       take: 20,
     }),
     prisma.diaperRecord.findMany({
-      where: { childId },
+      where: { childId, deletedAt: null },
       orderBy: { time: "desc" },
       take: 20,
     }),
     prisma.sleepRecord.findMany({
-      where: { childId },
+      where: { childId, deletedAt: null },
       orderBy: { startTime: "desc" },
       take: 20,
     }),

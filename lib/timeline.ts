@@ -5,6 +5,8 @@ export type TimelineItem = {
   time: Date;
   creatorDisplayName: string;
   notes: string | null;
+  updatedAt?: Date;
+  edited?: boolean;
   amountMl?: number | null;
 };
 
@@ -17,6 +19,8 @@ type FeedingInput = {
   amountMl: number | null;
   creatorDisplayName: string;
   notes: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
 
 type DiaperInput = {
@@ -25,6 +29,8 @@ type DiaperInput = {
   time: Date;
   creatorDisplayName: string;
   notes: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
 
 type SleepInput = {
@@ -33,7 +39,14 @@ type SleepInput = {
   endTime: Date | null;
   creatorDisplayName: string;
   notes: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
+
+function isEdited(record: { createdAt?: Date; updatedAt?: Date }) {
+  if (!record.createdAt || !record.updatedAt) return false;
+  return record.updatedAt.getTime() > record.createdAt.getTime();
+}
 
 function diaperTitle(type: DiaperInput["type"]) {
   if (type === "dirty") return "便便";
@@ -62,6 +75,8 @@ export function buildTimelineItems(input: {
       time: feeding.endTime ?? feeding.startTime,
       creatorDisplayName: feeding.creatorDisplayName,
       notes: feeding.notes,
+      updatedAt: feeding.updatedAt,
+      edited: isEdited(feeding),
       amountMl: feeding.amountMl,
     })),
     ...input.diapers.map((diaper) => ({
@@ -71,6 +86,8 @@ export function buildTimelineItems(input: {
       time: diaper.time,
       creatorDisplayName: diaper.creatorDisplayName,
       notes: diaper.notes,
+      updatedAt: diaper.updatedAt,
+      edited: isEdited(diaper),
     })),
     ...input.sleeps.map((sleep) => ({
       id: sleep.id,
@@ -79,6 +96,8 @@ export function buildTimelineItems(input: {
       time: sleep.endTime ?? sleep.startTime,
       creatorDisplayName: sleep.creatorDisplayName,
       notes: sleep.notes,
+      updatedAt: sleep.updatedAt,
+      edited: isEdited(sleep),
     })),
   ].sort((left, right) => right.time.getTime() - left.time.getTime());
 }

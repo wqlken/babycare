@@ -14,9 +14,9 @@ Status as of 2026-07-01:
 
 - V1 core family logging is implemented on `main`.
 - Implemented V1 scope includes bootstrap registration, invite-bound registration, login/logout, first-child onboarding, current child preference, baby profile editing, account settings, family invitations, caregiver removal with last-owner protection, feeding/diaper/sleep logging, breastfeeding and sleep start/stop timers, dashboard summaries, recent records, timeline display, owner record deletion, bottle feeding edit controls, Docker Compose, and manual backup/restore scripts.
-- V1 implementation uses hard deletion for owner record delete controls. V1.1 still needs soft deletion and optimistic concurrency before record editing/deletion is considered data-ownership complete.
-- V1.1 and V1.2 remain planned follow-up phases. Their incomplete items are listed in their phase sections below.
-- Latest verified commands on `main`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
+- V1.1 soft deletion, edited metadata, and optimistic bottle editing are implemented on `feat/v1-safe-record-editing`.
+- Remaining V1.1 work: CSV export, family administration, seven-day summary, PWA metadata, and network-unavailable handling. V1.2 remains a planned follow-up phase.
+- Latest verified commands on `feat/v1-safe-record-editing`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
 
 ### V1: Core Family Logging
 
