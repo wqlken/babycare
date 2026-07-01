@@ -12,8 +12,8 @@
 
 - Phase V1 is implemented on `main`.
 - V1 implementation also includes follow-up management polish that was added after the original task list: baby profile settings, account profile/password settings, family member removal with last-owner protection, owner record deletion from the timeline, and bottle feeding edit controls.
-- Phase V1.1 has started: Task 10 soft deletion, edited metadata, and optimistic bottle editing are implemented on `feat/v1-safe-record-editing`.
-- Remaining V1.1 tasks are CSV export, family administration, seven-day summary, and PWA/network handling. Phase V1.2 remains incomplete.
+- Phase V1.1 has started: Task 10 soft deletion, edited metadata, optimistic bottle editing, and Task 11 owner CSV export are implemented on `feat/v1-safe-record-editing`.
+- Remaining V1.1 tasks are family administration, seven-day summary, and PWA/network handling. Phase V1.2 remains incomplete.
 - Latest verified commands on `feat/v1-safe-record-editing`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
 
 ---
@@ -798,12 +798,12 @@ git commit -m "docs: add Docker backup workflow"
 - Create: `app/api/export/[childId]/route.ts`
 - Test: `tests/integration/exports.test.ts`
 
-- [ ] Implement CSV serialization with UTC and local timestamps.
-- [ ] Add owner-only export route with child and date range.
-- [ ] Exclude soft-deleted records by default.
-- [ ] Include notes and creator display name snapshot.
-- [ ] Run export tests.
-- [ ] Commit with `feat: add owner CSV export`.
+- [x] Implement CSV serialization with UTC and local timestamps.
+- [x] Add owner-only export route with child and date range.
+- [x] Exclude soft-deleted records by default.
+- [x] Include notes and creator display name snapshot.
+- [x] Run export tests.
+- [x] Commit with `feat: add owner CSV export`.
 
 ### Task 12: Role Management and Password Reset
 
