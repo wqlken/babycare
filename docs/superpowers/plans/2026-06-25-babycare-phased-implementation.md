@@ -12,8 +12,9 @@
 
 - Phase V1 is implemented on `main`.
 - V1 implementation also includes follow-up management polish that was added after the original task list: baby profile settings, account profile/password settings, family member removal with last-owner protection, owner record deletion from the timeline, and bottle feeding edit controls.
-- Phase V1.1 and Phase V1.2 remain incomplete and should be implemented in later tasks.
-- Latest verified commands on `main`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
+- Phase V1.1 is implemented on `feat/v1-safe-record-editing`.
+- Phase V1.2 remains incomplete.
+- Latest verified commands on `feat/v1-safe-record-editing`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
 
 ---
 
@@ -783,12 +784,12 @@ git commit -m "docs: add Docker backup workflow"
 - Modify: record actions in `app/actions/*.ts`
 - Test: `tests/integration/records.test.ts`
 
-- [ ] Add `deletedAt`, `deletedById`, `updatedById` to record models.
-- [ ] Generate migration.
-- [ ] Update list and summary queries to exclude soft-deleted records.
-- [ ] Update edit actions to require matching `updatedAt`.
-- [ ] Run integration tests.
-- [ ] Commit with `feat: add safe record editing`.
+- [x] Add `deletedAt`, `deletedById`, `updatedById` to record models.
+- [x] Generate migration.
+- [x] Update list and summary queries to exclude soft-deleted records.
+- [x] Update edit actions to require matching `updatedAt`.
+- [x] Run integration tests.
+- [x] Commit with `feat: add safe record editing`.
 
 ### Task 11: CSV Export
 
@@ -797,12 +798,12 @@ git commit -m "docs: add Docker backup workflow"
 - Create: `app/api/export/[childId]/route.ts`
 - Test: `tests/integration/exports.test.ts`
 
-- [ ] Implement CSV serialization with UTC and local timestamps.
-- [ ] Add owner-only export route with child and date range.
-- [ ] Exclude soft-deleted records by default.
-- [ ] Include notes and creator display name snapshot.
-- [ ] Run export tests.
-- [ ] Commit with `feat: add owner CSV export`.
+- [x] Implement CSV serialization with UTC and local timestamps.
+- [x] Add owner-only export route with child and date range.
+- [x] Exclude soft-deleted records by default.
+- [x] Include notes and creator display name snapshot.
+- [x] Run export tests.
+- [x] Commit with `feat: add owner CSV export`.
 
 ### Task 12: Role Management and Password Reset
 
@@ -811,12 +812,12 @@ git commit -m "docs: add Docker backup workflow"
 - Modify: `app/(app)/settings/family/page.tsx`
 - Test: `tests/integration/permissions.test.ts`
 
-- [ ] Add owner-only role promotion/demotion.
-- [ ] Block removing or demoting the last owner.
-- [ ] Add owner reset temporary password for caregivers.
-- [ ] Invalidate affected user sessions.
-- [ ] Run permissions tests.
-- [ ] Commit with `feat: add family administration`.
+- [x] Add owner-only role promotion/demotion.
+- [x] Block removing or demoting the last owner.
+- [x] Add owner reset temporary password for caregivers.
+- [x] Invalidate affected user sessions.
+- [x] Run permissions tests.
+- [x] Commit with `feat: add family administration`.
 
 ### Task 13: Seven-Day Summary and PWA Metadata
 
@@ -826,11 +827,11 @@ git commit -m "docs: add Docker backup workflow"
 - Create: `app/manifest.ts`
 - Modify: `app/layout.tsx`
 
-- [ ] Render 7-day summary table/list.
-- [ ] Add PWA manifest and mobile shell metadata.
-- [ ] Add network-unavailable handling for failed writes.
-- [ ] Run build.
-- [ ] Commit with `feat: add summary and PWA metadata`.
+- [x] Render 7-day summary table/list.
+- [x] Add PWA manifest and mobile shell metadata.
+- [x] Add network-unavailable handling for failed writes.
+- [x] Run build.
+- [x] Commit with `feat: add summary and PWA metadata`.
 
 ---
 

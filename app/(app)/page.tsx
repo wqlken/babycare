@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/auth/guards";
 import { ActiveTimers } from "@/components/dashboard/active-timers";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { RecentEvents } from "@/components/dashboard/recent-events";
+import { SevenDaySummary } from "@/components/dashboard/seven-day-summary";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import {
   getChildDashboardTarget,
@@ -46,6 +47,7 @@ export default async function Home() {
             lastDiaperAt={dashboard.lastDiaperAt}
             lastSleepAt={dashboard.lastSleepAt}
           />
+          <SevenDaySummary summaries={dashboard.sevenDaySummary} />
           <RecentEvents
             childId={currentChild.id}
             items={dashboard.timelineItems}

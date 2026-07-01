@@ -55,6 +55,7 @@ export default async function TimelinePage({ params, searchParams }: PageProps) 
                 <h2 className="font-medium text-slate-950">{item.title}</h2>
                 <p className="mt-1 text-sm text-slate-500">
                   {item.creatorDisplayName}
+                  {item.edited ? " · 已编辑" : ""}
                 </p>
               </div>
               <time className="text-sm text-slate-500">{formatTime(item.time)}</time>
@@ -69,6 +70,11 @@ export default async function TimelinePage({ params, searchParams }: PageProps) 
               >
                 <input name="childId" type="hidden" value={childId} />
                 <input name="recordId" type="hidden" value={item.id} />
+                <input
+                  name="updatedAt"
+                  type="hidden"
+                  value={item.updatedAt?.toISOString() ?? ""}
+                />
                 <label className="block">
                   <span className="text-xs font-medium text-slate-600">奶量 ml</span>
                   <input

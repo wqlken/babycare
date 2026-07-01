@@ -28,6 +28,11 @@ function createRecordsDatabase(options?: {
     endTime: Date | null;
     amountMl: number | null;
     notes: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    deletedAt: Date | null;
+    deletedById: string | null;
+    updatedById: string | null;
   }> = [];
   const sleeps: Array<{
     id: string;
@@ -37,6 +42,11 @@ function createRecordsDatabase(options?: {
     startTime: Date;
     endTime: Date | null;
     notes: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    deletedAt: Date | null;
+    deletedById: string | null;
+    updatedById: string | null;
   }> = [];
 
   return {
@@ -63,7 +73,14 @@ function createRecordsDatabase(options?: {
     feedingRecord: {
       findFirst: vi.fn(async ({ where }) => {
         if ("id" in where) {
-          return feedings.find((feeding) => feeding.id === where.id) ?? null;
+          return (
+            feedings.find(
+              (feeding) =>
+                feeding.id === where.id &&
+                (!("childId" in where) || feeding.childId === where.childId) &&
+                (!("deletedAt" in where) || feeding.deletedAt === where.deletedAt),
+            ) ?? null
+          );
         }
 
         return (
@@ -71,11 +88,13 @@ function createRecordsDatabase(options?: {
             (feeding) =>
               feeding.childId === where.childId &&
               feeding.type === where.type &&
-              feeding.endTime === where.endTime,
+              feeding.endTime === where.endTime &&
+              (!("deletedAt" in where) || feeding.deletedAt === where.deletedAt),
           ) ?? null
         );
       }),
       create: vi.fn(async ({ data }) => {
+        const now = new Date("2026-06-25T01:00:00.000Z");
         const feeding = {
           id: `feeding-${feedings.length + 1}`,
           childId: data.childId,
@@ -87,6 +106,11 @@ function createRecordsDatabase(options?: {
           endTime: data.endTime ?? null,
           amountMl: data.amountMl ?? null,
           notes: data.notes ?? null,
+          createdAt: now,
+          updatedAt: now,
+          deletedAt: null,
+          deletedById: null,
+          updatedById: null,
         };
         feedings.push(feeding);
         return feeding;
@@ -97,6 +121,12 @@ function createRecordsDatabase(options?: {
         feeding.endTime = data.endTime ?? feeding.endTime;
         feeding.amountMl = data.amountMl ?? feeding.amountMl;
         feeding.notes = "notes" in data ? data.notes : feeding.notes;
+        feeding.deletedAt = "deletedAt" in data ? data.deletedAt : feeding.deletedAt;
+        feeding.deletedById =
+          "deletedById" in data ? data.deletedById : feeding.deletedById;
+        feeding.updatedById =
+          "updatedById" in data ? data.updatedById : feeding.updatedById;
+        feeding.updatedAt = new Date(feeding.updatedAt.getTime() + 1);
         return feeding;
       }),
       delete: vi.fn(async ({ where }) => {
@@ -118,17 +148,27 @@ function createRecordsDatabase(options?: {
     sleepRecord: {
       findFirst: vi.fn(async ({ where }) => {
         if ("id" in where) {
-          return sleeps.find((sleep) => sleep.id === where.id) ?? null;
+          return (
+            sleeps.find(
+              (sleep) =>
+                sleep.id === where.id &&
+                (!("childId" in where) || sleep.childId === where.childId) &&
+                (!("deletedAt" in where) || sleep.deletedAt === where.deletedAt),
+            ) ?? null
+          );
         }
 
         return (
           sleeps.find(
             (sleep) =>
-              sleep.childId === where.childId && sleep.endTime === where.endTime,
+              sleep.childId === where.childId &&
+              sleep.endTime === where.endTime &&
+              (!("deletedAt" in where) || sleep.deletedAt === where.deletedAt),
           ) ?? null
         );
       }),
       create: vi.fn(async ({ data }) => {
+        const now = new Date("2026-06-25T01:00:00.000Z");
         const sleep = {
           id: `sleep-${sleeps.length + 1}`,
           childId: data.childId,
@@ -137,6 +177,11 @@ function createRecordsDatabase(options?: {
           startTime: data.startTime,
           endTime: data.endTime ?? null,
           notes: data.notes ?? null,
+          createdAt: now,
+          updatedAt: now,
+          deletedAt: null,
+          deletedById: null,
+          updatedById: null,
         };
         sleeps.push(sleep);
         return sleep;
@@ -146,6 +191,10 @@ function createRecordsDatabase(options?: {
         if (!sleep) throw new Error("Sleep not found.");
         sleep.endTime = data.endTime ?? sleep.endTime;
         sleep.notes = "notes" in data ? data.notes : sleep.notes;
+        sleep.deletedAt = "deletedAt" in data ? data.deletedAt : sleep.deletedAt;
+        sleep.deletedById = "deletedById" in data ? data.deletedById : sleep.deletedById;
+        sleep.updatedById = "updatedById" in data ? data.updatedById : sleep.updatedById;
+        sleep.updatedAt = new Date(sleep.updatedAt.getTime() + 1);
         return sleep;
       }),
       delete: vi.fn(async ({ where }) => {
@@ -330,7 +379,8 @@ describe("record creation", () => {
           recordId: "feeding-1",
           amountMl: 120,
           notes: "more",
-        },
+          updatedAt: new Date("2026-06-25T01:00:00.000Z"),
+        } as Parameters<typeof updateBottleFeeding>[1],
         db,
       ),
     ).resolves.toEqual({ ok: true, recordId: "feeding-1" });
@@ -369,7 +419,8 @@ describe("record creation", () => {
           childId: "child-1",
           recordId: "feeding-1",
           amountMl: 120,
-        },
+          updatedAt: new Date("2026-06-25T01:00:00.000Z"),
+        } as Parameters<typeof updateBottleFeeding>[1],
         db,
       ),
     ).resolves.toEqual({
@@ -378,7 +429,38 @@ describe("record creation", () => {
     });
   });
 
-  test("owners can delete records", async () => {
+  test("rejects bottle edits when the record version is stale", async () => {
+    const db = createRecordsDatabase();
+
+    await createBottleFeeding(
+      "user-1",
+      {
+        childId: "child-1",
+        amountMl: 90,
+        eventTime: new Date("2026-06-25T01:00:00.000Z"),
+      },
+      db,
+    );
+
+    await expect(
+      updateBottleFeeding(
+        "user-1",
+        {
+          childId: "child-1",
+          recordId: "feeding-1",
+          amountMl: 120,
+          updatedAt: new Date("2026-06-25T00:59:59.999Z"),
+        } as Parameters<typeof updateBottleFeeding>[1],
+        db,
+      ),
+    ).resolves.toEqual({
+      ok: false,
+      error: "Record has changed. Refresh and try again.",
+    });
+    expect(db.feedingRecord.update).not.toHaveBeenCalled();
+  });
+
+  test("owners soft-delete records instead of hard deleting them", async () => {
     const db = createRecordsDatabase();
 
     await createBottleFeeding(
@@ -402,6 +484,55 @@ describe("record creation", () => {
         db,
       ),
     ).resolves.toEqual({ ok: true });
+
+    expect(db.feedingRecord.update).toHaveBeenCalledWith({
+      where: { id: "feeding-1" },
+      data: expect.objectContaining({
+        deletedAt: expect.any(Date),
+        deletedById: "user-1",
+      }),
+    });
+    expect(db.feedingRecord.delete).not.toHaveBeenCalled();
+  });
+
+  test("deleted records cannot be edited again", async () => {
+    const db = createRecordsDatabase();
+
+    await createBottleFeeding(
+      "user-1",
+      {
+        childId: "child-1",
+        amountMl: 90,
+        eventTime: new Date("2026-06-25T01:00:00.000Z"),
+      },
+      db,
+    );
+
+    await deleteRecord(
+      "user-1",
+      {
+        childId: "child-1",
+        kind: "feeding",
+        recordId: "feeding-1",
+      },
+      db,
+    );
+
+    await expect(
+      updateBottleFeeding(
+        "user-1",
+        {
+          childId: "child-1",
+          recordId: "feeding-1",
+          amountMl: 120,
+          updatedAt: new Date("2026-06-25T01:00:00.000Z"),
+        } as Parameters<typeof updateBottleFeeding>[1],
+        db,
+      ),
+    ).resolves.toEqual({
+      ok: false,
+      error: "Record is not accessible.",
+    });
   });
 
   test("caregivers cannot delete records", async () => {

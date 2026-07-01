@@ -40,6 +40,8 @@ type ActiveFeedingRecord = {
   endTime?: Date | null;
   amountMl?: number | null;
   notes?: string | null;
+  updatedAt?: Date;
+  deletedAt?: Date | null;
 };
 
 type ActiveSleepRecord = {
@@ -49,6 +51,8 @@ type ActiveSleepRecord = {
   startTime?: Date;
   endTime?: Date | null;
   notes?: string | null;
+  updatedAt?: Date;
+  deletedAt?: Date | null;
 };
 
 export type RecordsDatabase = {
@@ -80,6 +84,7 @@ export type RecordsDatabase = {
         id?: string;
         type?: "breast";
         endTime?: null;
+        deletedAt?: null;
       };
     }) => Promise<ActiveFeedingRecord | null>;
     create: (args: {
@@ -91,6 +96,9 @@ export type RecordsDatabase = {
         endTime?: Date;
         amountMl?: number;
         notes?: string | null;
+        deletedAt?: Date;
+        deletedById?: string;
+        updatedById?: string;
       };
     }) => Promise<{ id: string }>;
     delete: (args: { where: { id: string } }) => Promise<{ id: string }>;
@@ -100,12 +108,15 @@ export type RecordsDatabase = {
       where: {
         childId?: string;
         id?: string;
+        deletedAt?: null;
       };
     }) => Promise<{
       id: string;
       childId?: string;
       creatorId?: string;
       notes?: string | null;
+      updatedAt?: Date;
+      deletedAt?: Date | null;
     } | null>;
     create: (args: {
       data: {
@@ -119,9 +130,14 @@ export type RecordsDatabase = {
     }) => Promise<{ id: string }>;
     update?: (args: {
       where: { id: string };
-      data: { notes?: string | null };
+      data: {
+        notes?: string | null;
+        deletedAt?: Date;
+        deletedById?: string;
+        updatedById?: string;
+      };
     }) => Promise<{ id: string }>;
-    delete: (args: { where: { id: string } }) => Promise<{ id: string }>;
+    delete?: (args: { where: { id: string } }) => Promise<{ id: string }>;
   };
   sleepRecord: {
     findFirst: (args: {
@@ -129,6 +145,7 @@ export type RecordsDatabase = {
         childId?: string;
         id?: string;
         endTime?: null;
+        deletedAt?: null;
       };
     }) => Promise<ActiveSleepRecord | null>;
     create: (args: {
@@ -139,6 +156,9 @@ export type RecordsDatabase = {
       data: {
         endTime?: Date;
         notes?: string | null;
+        deletedAt?: Date;
+        deletedById?: string;
+        updatedById?: string;
       };
     }) => Promise<{ id: string }>;
     delete: (args: { where: { id: string } }) => Promise<{ id: string }>;
@@ -253,6 +273,7 @@ export async function startBreastfeeding(
       childId: context.child.id,
       type: "breast",
       endTime: null,
+      deletedAt: null,
     },
   });
 
@@ -323,6 +344,7 @@ export async function startSleep(
     where: {
       childId: context.child.id,
       endTime: null,
+      deletedAt: null,
     },
   });
 
@@ -360,6 +382,7 @@ export async function stopBreastfeeding(
       childId: context.child.id,
       type: "breast",
       endTime: null,
+      deletedAt: null,
     },
   });
 
@@ -371,6 +394,7 @@ export async function stopBreastfeeding(
     where: { id: active.id },
     data: {
       endTime: input.endTime,
+      updatedById: context.user.id,
     },
   });
 
@@ -392,6 +416,7 @@ export async function stopSleep(
     where: {
       childId: context.child.id,
       endTime: null,
+      deletedAt: null,
     },
   });
 
@@ -403,6 +428,7 @@ export async function stopSleep(
     where: { id: active.id },
     data: {
       endTime: input.endTime,
+      updatedById: context.user.id,
     },
   });
 
@@ -415,6 +441,7 @@ export async function updateBottleFeeding(
     childId: string;
     recordId: string;
     amountMl: number;
+    updatedAt: Date;
     notes?: string | null;
   },
   db: RecordsDatabase = prisma,
@@ -430,6 +457,7 @@ export async function updateBottleFeeding(
     where: {
       id: input.recordId,
       childId: context.child.id,
+      deletedAt: null,
     },
   });
 
@@ -444,11 +472,19 @@ export async function updateBottleFeeding(
     };
   }
 
+  if (existing.updatedAt?.getTime() !== input.updatedAt.getTime()) {
+    return {
+      ok: false,
+      error: "Record has changed. Refresh and try again.",
+    };
+  }
+
   const record = await db.feedingRecord.update({
     where: { id: existing.id },
     data: {
       amountMl: input.amountMl,
       notes: cleanNotes(input.notes),
+      updatedById: context.user.id,
     },
   });
 
@@ -476,6 +512,7 @@ export async function deleteRecord(
       where: {
         id: input.recordId,
         childId: context.child.id,
+        deletedAt: null,
       },
     });
 
@@ -483,7 +520,13 @@ export async function deleteRecord(
       return { ok: false, error: "Record is not accessible." };
     }
 
-    await db.feedingRecord.delete({ where: { id: record.id } });
+    await db.feedingRecord.update({
+      where: { id: record.id },
+      data: {
+        deletedAt: new Date(),
+        deletedById: context.user.id,
+      },
+    });
     return { ok: true };
   }
 
@@ -492,6 +535,7 @@ export async function deleteRecord(
       where: {
         id: input.recordId,
         childId: context.child.id,
+        deletedAt: null,
       },
     });
 
@@ -499,7 +543,13 @@ export async function deleteRecord(
       return { ok: false, error: "Record is not accessible." };
     }
 
-    await db.diaperRecord.delete({ where: { id: record.id } });
+    await db.diaperRecord.update?.({
+      where: { id: record.id },
+      data: {
+        deletedAt: new Date(),
+        deletedById: context.user.id,
+      },
+    });
     return { ok: true };
   }
 
@@ -507,6 +557,7 @@ export async function deleteRecord(
     where: {
       id: input.recordId,
       childId: context.child.id,
+      deletedAt: null,
     },
   });
 
@@ -514,6 +565,12 @@ export async function deleteRecord(
     return { ok: false, error: "Record is not accessible." };
   }
 
-  await db.sleepRecord.delete({ where: { id: record.id } });
+  await db.sleepRecord.update({
+    where: { id: record.id },
+    data: {
+      deletedAt: new Date(),
+      deletedById: context.user.id,
+    },
+  });
   return { ok: true };
 }

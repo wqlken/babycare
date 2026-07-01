@@ -74,10 +74,12 @@ export async function updateBottleFeedingAction(formData: FormData) {
   const user = await requireUser();
   const childId = String(formData.get("childId") ?? "");
   const recordId = String(formData.get("recordId") ?? "");
+  const updatedAt = new Date(String(formData.get("updatedAt") ?? ""));
   const result = await updateBottleFeeding(user.id, {
     childId,
     recordId,
     amountMl: Number(formData.get("amountMl")),
+    updatedAt,
     notes: String(formData.get("notes") ?? ""),
   });
 

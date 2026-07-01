@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import { prisma } from "@/lib/db";
+import { hashPassword } from "@/lib/auth/password";
 
 type Membership = {
   familyId: string;
@@ -10,6 +11,8 @@ type Membership = {
     email: string;
   };
 };
+
+type FamilyRole = "owner" | "caregiver";
 
 type InviteRecord = {
   id: string;
@@ -51,7 +54,16 @@ export type FamilyDatabase = {
     }) => Promise<Membership & { id: string; userId: string } | null>;
     update?: (args: {
       where: { id: string };
-      data: { removedAt: Date };
+      data: { removedAt?: Date; role?: FamilyRole };
+    }) => Promise<unknown>;
+  };
+  user?: {
+    update: (args: {
+      where: { id: string };
+      data: {
+        passwordHash: string;
+        sessionRevokedAt: Date;
+      };
     }) => Promise<unknown>;
   };
   invite: {
@@ -106,6 +118,13 @@ export type InviteAcceptanceDatabase = InviteValidationDatabase & {
 };
 
 type ServiceResult<T> = ({ ok: true } & T) | { ok: false; error: string };
+type FamilyActionContext =
+  | {
+      ok: true;
+      actor: Membership;
+      target: Membership & { id: string; userId: string };
+    }
+  | { ok: false; error: string };
 
 export function hashInviteToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
@@ -280,14 +299,11 @@ export async function listFamilyMembers(userId: string) {
   });
 }
 
-export async function removeFamilyMember(
+async function getFamilyActionContext(
   userId: string,
-  input: {
-    memberId: string;
-    now?: Date;
-  },
-  db: FamilyDatabase = prisma,
-): Promise<{ ok: true } | { ok: false; error: string }> {
+  memberId: string,
+  db: FamilyDatabase,
+): Promise<FamilyActionContext> {
   const actor = await db.familyMember.findFirst({
     where: {
       userId,
@@ -303,12 +319,12 @@ export async function removeFamilyMember(
     return { ok: false, error: "Only owners can manage family members." };
   }
 
-  if (!db.familyMember.findUnique || !db.familyMember.update || !db.familyMember.count) {
+  if (!db.familyMember.findUnique) {
     return { ok: false, error: "Family member management is not available." };
   }
 
   const target = await db.familyMember.findUnique({
-    where: { id: input.memberId },
+    where: { id: memberId },
     include: { user: true },
   });
 
@@ -316,26 +332,142 @@ export async function removeFamilyMember(
     return { ok: false, error: "Family member is not accessible." };
   }
 
-  if (target.role === "owner") {
-    const ownerCount = await db.familyMember.count({
-      where: {
-        familyId: actor.familyId,
-        role: "owner",
-        removedAt: null,
-      },
-    });
+  return {
+    ok: true,
+    actor,
+    target,
+  };
+}
 
-    if (ownerCount <= 1) {
-      return { ok: false, error: "A family must keep at least one owner." };
-    }
+async function ownerCount(familyId: string, db: FamilyDatabase) {
+  if (!db.familyMember.count) {
+    return null;
+  }
+
+  return db.familyMember.count({
+    where: {
+      familyId,
+      role: "owner",
+      removedAt: null,
+    },
+  });
+}
+
+async function wouldRemoveLastOwner(
+  target: Membership,
+  db: FamilyDatabase,
+) {
+  if (target.role !== "owner") {
+    return false;
+  }
+
+  const count = await ownerCount(target.familyId, db);
+  return count !== null && count <= 1;
+}
+
+export async function removeFamilyMember(
+  userId: string,
+  input: {
+    memberId: string;
+    now?: Date;
+  },
+  db: FamilyDatabase = prisma,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!db.familyMember.update || !db.familyMember.count) {
+    return { ok: false, error: "Family member management is not available." };
+  }
+
+  const context = await getFamilyActionContext(userId, input.memberId, db);
+  if (!context.ok) return context;
+
+  if (await wouldRemoveLastOwner(context.target, db)) {
+    return { ok: false, error: "A family must keep at least one owner." };
   }
 
   await db.familyMember.update({
-    where: { id: target.id },
+    where: { id: context.target.id },
     data: {
       removedAt: input.now ?? new Date(),
     },
   });
 
   return { ok: true };
+}
+
+export async function updateFamilyMemberRole(
+  userId: string,
+  input: {
+    memberId: string;
+    role: FamilyRole;
+  },
+  db: FamilyDatabase = prisma,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!db.familyMember.update || !db.familyMember.count) {
+    return { ok: false, error: "Family member management is not available." };
+  }
+
+  const context = await getFamilyActionContext(userId, input.memberId, db);
+  if (!context.ok) return context;
+
+  if (input.role !== "owner" && input.role !== "caregiver") {
+    return { ok: false, error: "Family role is invalid." };
+  }
+
+  if (context.target.role === "owner" && input.role === "caregiver") {
+    if (await wouldRemoveLastOwner(context.target, db)) {
+      return { ok: false, error: "A family must keep at least one owner." };
+    }
+  }
+
+  await db.familyMember.update({
+    where: { id: context.target.id },
+    data: { role: input.role },
+  });
+
+  return { ok: true };
+}
+
+export async function resetCaregiverPassword(
+  userId: string,
+  input: {
+    memberId: string;
+    now?: Date;
+  },
+  db: FamilyDatabase = prisma,
+): Promise<
+  | {
+      ok: true;
+      temporaryPassword: string;
+    }
+  | { ok: false; error: string }
+> {
+  if (!db.user) {
+    return { ok: false, error: "Password reset is not available." };
+  }
+
+  const context = await getFamilyActionContext(userId, input.memberId, db);
+  if (!context.ok) return context;
+
+  if (context.target.userId === userId || context.target.role !== "caregiver") {
+    return {
+      ok: false,
+      error: "Only caregiver passwords can be reset by owners.",
+    };
+  }
+
+  const temporaryPassword = randomBytes(12).toString("base64url").slice(0, 16);
+  const now = input.now ?? new Date();
+
+  await db.user.update({
+    where: { id: context.target.userId },
+    data: {
+      passwordHash: await hashPassword(temporaryPassword),
+      sessionRevokedAt: now,
+    },
+  });
+
+  return {
+    ok: true,
+    temporaryPassword,
+  };
 }

@@ -54,4 +54,41 @@ describe("Prisma schema", () => {
     expect(migration).toContain("unique_active_breastfeeding_record_per_child");
     expect(migration).toContain('"endTime" IS NULL');
   });
+
+  test("defines soft delete and editor metadata for records", () => {
+    const schema = readProjectFile("prisma/schema.prisma");
+
+    for (const model of ["FeedingRecord", "DiaperRecord", "SleepRecord"]) {
+      const modelStart = schema.indexOf(`model ${model} {`);
+      const modelEnd = schema.indexOf("\n}", modelStart);
+      const block = schema.slice(modelStart, modelEnd);
+
+      expect(block).toContain("deletedAt");
+      expect(block).toContain("deletedById");
+      expect(block).toContain("updatedById");
+    }
+  });
+
+  test("migrates record soft delete fields and active-record guards", () => {
+    const migration = readProjectFile(
+      "prisma/migrations/000002_safe_record_editing/migration.sql",
+    );
+
+    expect(migration).toContain('ADD COLUMN "deletedAt" TIMESTAMP(3)');
+    expect(migration).toContain('ADD COLUMN "deletedById" TEXT');
+    expect(migration).toContain('ADD COLUMN "updatedById" TEXT');
+    expect(migration).toContain('"deletedAt" IS NULL');
+    expect(migration).toContain("unique_active_sleep_record_per_child");
+    expect(migration).toContain("unique_active_breastfeeding_record_per_child");
+  });
+
+  test("defines session revocation timestamp for password resets", () => {
+    const schema = readProjectFile("prisma/schema.prisma");
+    const migration = readProjectFile(
+      "prisma/migrations/000003_family_administration/migration.sql",
+    );
+
+    expect(schema).toContain("sessionRevokedAt");
+    expect(migration).toContain('ADD COLUMN "sessionRevokedAt" TIMESTAMP(3)');
+  });
 });
