@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
-import { summarizeDay } from "@/lib/summaries";
-import { toLocalDateString } from "@/lib/time";
+import { buildSevenDaySummary, summarizeDay } from "@/lib/summaries";
+import { addDays, getLocalDayRange, toLocalDateString } from "@/lib/time";
 import { buildTimelineItems } from "@/lib/timeline";
 import { getAccessibleChild } from "@/lib/children/service";
 
@@ -11,25 +11,47 @@ export async function getDashboardData(userId: string, childId: string) {
     return null;
   }
 
+  const today = toLocalDateString(new Date(), "Asia/Shanghai");
+  const startDate = addDays(today, -6);
+  const rangeStart = getLocalDayRange(startDate, "Asia/Shanghai").start;
+  const rangeEnd = getLocalDayRange(addDays(today, 1), "Asia/Shanghai").start;
+
   const [feedings, diapers, sleeps] = await Promise.all([
     prisma.feedingRecord.findMany({
-      where: { childId, deletedAt: null },
+      where: {
+        childId,
+        deletedAt: null,
+        startTime: {
+          gte: rangeStart,
+          lt: rangeEnd,
+        },
+      },
       orderBy: { startTime: "desc" },
-      take: 20,
     }),
     prisma.diaperRecord.findMany({
-      where: { childId, deletedAt: null },
+      where: {
+        childId,
+        deletedAt: null,
+        time: {
+          gte: rangeStart,
+          lt: rangeEnd,
+        },
+      },
       orderBy: { time: "desc" },
-      take: 20,
     }),
     prisma.sleepRecord.findMany({
-      where: { childId, deletedAt: null },
+      where: {
+        childId,
+        deletedAt: null,
+        startTime: {
+          gte: rangeStart,
+          lt: rangeEnd,
+        },
+      },
       orderBy: { startTime: "desc" },
-      take: 20,
     }),
   ]);
 
-  const today = toLocalDateString(new Date(), "Asia/Shanghai");
   const summary = summarizeDay({
     date: today,
     timezone: "Asia/Shanghai",
@@ -57,5 +79,12 @@ export async function getDashboardData(userId: string, childId: string) {
       null,
     activeSleep: sleeps.find((sleep) => !sleep.endTime) ?? null,
     timelineItems: buildTimelineItems({ feedings, diapers, sleeps }).slice(0, 8),
+    sevenDaySummary: buildSevenDaySummary({
+      endDate: today,
+      timezone: "Asia/Shanghai",
+      feedings,
+      diapers,
+      sleeps,
+    }),
   };
 }

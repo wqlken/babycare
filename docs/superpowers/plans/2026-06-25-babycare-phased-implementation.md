@@ -12,8 +12,8 @@
 
 - Phase V1 is implemented on `main`.
 - V1 implementation also includes follow-up management polish that was added after the original task list: baby profile settings, account profile/password settings, family member removal with last-owner protection, owner record deletion from the timeline, and bottle feeding edit controls.
-- Phase V1.1 has started: Task 10 soft deletion, edited metadata, optimistic bottle editing, Task 11 owner CSV export, and Task 12 family administration are implemented on `feat/v1-safe-record-editing`.
-- Remaining V1.1 task is seven-day summary plus PWA/network handling. Phase V1.2 remains incomplete.
+- Phase V1.1 is implemented on `feat/v1-safe-record-editing`.
+- Phase V1.2 remains incomplete.
 - Latest verified commands on `feat/v1-safe-record-editing`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
 
 ---
@@ -827,11 +827,11 @@ git commit -m "docs: add Docker backup workflow"
 - Create: `app/manifest.ts`
 - Modify: `app/layout.tsx`
 
-- [ ] Render 7-day summary table/list.
-- [ ] Add PWA manifest and mobile shell metadata.
-- [ ] Add network-unavailable handling for failed writes.
-- [ ] Run build.
-- [ ] Commit with `feat: add summary and PWA metadata`.
+- [x] Render 7-day summary table/list.
+- [x] Add PWA manifest and mobile shell metadata.
+- [x] Add network-unavailable handling for failed writes.
+- [x] Run build.
+- [x] Commit with `feat: add summary and PWA metadata`.
 
 ---
 
