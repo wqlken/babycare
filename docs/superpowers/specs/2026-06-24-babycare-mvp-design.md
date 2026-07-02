@@ -16,6 +16,7 @@ Status as of 2026-07-02:
 - Implemented V1 scope includes bootstrap registration, invite-bound registration, login/logout, first-child onboarding, current child preference, baby profile editing, account settings, family invitations, caregiver removal with last-owner protection, feeding/diaper/sleep logging, breastfeeding and sleep start/stop timers, dashboard summaries, recent records, timeline display, owner record deletion, bottle feeding edit controls, Docker Compose, and manual backup/restore scripts.
 - V1.1 soft deletion, edited metadata, optimistic bottle editing, owner CSV export, family administration, seven-day summary, PWA metadata, and network-unavailable handling are implemented on `main`.
 - V1.2 bottle content, stool details, milk unit preference, ounce input conversion, child archiving, archived-child record blocking, and creator display name snapshot coverage are implemented on `main` and tagged as `v1.2.0`.
+- Post-v1.2 UI polish is implemented on `main`: the dashboard and high-frequency forms use a softer low-saturation palette, larger touch targets, and milk volume progress/trend visuals.
 - Latest verified commands on `main`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`. Docker smoke testing was not run locally because Docker CLI is not installed in this environment.
 
 ### V1: Core Family Logging
@@ -30,6 +31,7 @@ V1 includes:
 - Fast mobile-first logging for feedings, diapers, and sleep.
 - Timer-based start and stop flows for breastfeeding and sleep.
 - A dashboard showing last events and today's totals.
+- A softer dashboard presentation with large quick action targets and milk volume progress/trend visuals.
 - A daily timeline with edit and delete controls.
 - Current child selection, child age display, and clear selected-child labels on record forms.
 - Basic owner/caregiver permissions and family data isolation.

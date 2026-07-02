@@ -9,6 +9,7 @@ Babycare is a self-hosted family baby tracking app for feeding, diapers, and sle
 - Family owners can invite and remove caregivers.
 - Baby profiles include name, birthday, gender, notes, and owner-managed archiving.
 - The dashboard shows current child context, quick actions, active timers, recent records, and daily totals.
+- The dashboard uses a soft low-saturation palette, large touch-friendly quick actions, and milk volume progress/trend visuals.
 - Feeding, diaper, and sleep records can be created from mobile-friendly forms.
 - Bottle records support content details and ml/oz input preferences while storing milk internally in milliliters.
 - Diaper records support optional stool color and consistency details.
