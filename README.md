@@ -7,12 +7,14 @@ Babycare is a self-hosted family baby tracking app for feeding, diapers, and sle
 - Bootstrap registration creates the first owner and family workspace.
 - Later registrations require an email-bound invitation link.
 - Family owners can invite and remove caregivers.
-- Baby profiles include name, birthday, gender, and notes.
+- Baby profiles include name, birthday, gender, notes, and owner-managed archiving.
 - The dashboard shows current child context, quick actions, active timers, recent records, and daily totals.
 - Feeding, diaper, and sleep records can be created from mobile-friendly forms.
+- Bottle records support content details and ml/oz input preferences while storing milk internally in milliliters.
+- Diaper records support optional stool color and consistency details.
 - Breastfeeding and sleep support start/stop timer flows.
 - Timeline shows recent records, notes, creator names, owner delete controls, and bottle feeding edit controls.
-- Account settings support display name, email, and password updates.
+- Account settings support display name, email, password, and milk unit preference updates.
 
 ## Application Routes
 
@@ -99,8 +101,14 @@ the `babycare` and `caddy` containers are attached to the same Docker network.
 ## Development
 
 ```powershell
-npm install
+npm ci
+npx prisma generate
 npm run dev
+```
+
+Run the local verification suite before merging:
+
+```powershell
 npm test
 npx tsc --noEmit
 npm run lint
@@ -108,6 +116,24 @@ npm run build
 ```
 
 Use `npx prisma db seed` only for local development seed data. Do not run seed automatically in production.
+
+## Production Verification
+
+After pulling new code on a server, apply migrations before or during app
+startup:
+
+```powershell
+docker compose run --rm babycare npx prisma migrate deploy
+docker compose up -d --build
+docker compose ps
+```
+
+For this repository's compose file, the app command already runs migrations on
+container start. For custom VPS compose files, keep:
+
+```yaml
+command: sh -c "npx prisma migrate deploy && npm run start"
+```
 
 ## Backup And Restore
 
