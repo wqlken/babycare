@@ -19,10 +19,10 @@ function formatDate(date: string) {
 export function SevenDaySummary({ summaries }: SevenDaySummaryProps) {
   return (
     <section className="space-y-3">
-      <h2 className="text-lg font-semibold text-slate-950">近 7 日汇总</h2>
-      <div className="overflow-x-auto rounded border border-slate-200 bg-white">
+      <h2 className="text-lg font-semibold text-[#37413d]">近 7 日汇总</h2>
+      <div className="overflow-x-auto rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] shadow-sm">
         <table className="min-w-full text-left text-sm">
-          <thead className="bg-slate-50 text-slate-500">
+          <thead className="bg-[#f3eee7] text-[#7b7168]">
             <tr>
               <th className="px-3 py-2 font-medium">日期</th>
               <th className="px-3 py-2 font-medium">喂养</th>
@@ -31,22 +31,22 @@ export function SevenDaySummary({ summaries }: SevenDaySummaryProps) {
               <th className="px-3 py-2 font-medium">睡眠</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-[#eee5dc]">
             {summaries.map((summary) => (
               <tr key={summary.date}>
-                <td className="px-3 py-2 text-slate-700">
+                <td className="px-3 py-2 text-[#766e66]">
                   {formatDate(summary.date)}
                 </td>
-                <td className="px-3 py-2 text-slate-950">
+                <td className="px-3 py-2 text-[#37413d]">
                   {summary.feedingCount}次
                 </td>
-                <td className="px-3 py-2 text-slate-950">
+                <td className="px-3 py-2 text-[#37413d]">
                   {summary.bottleMl} ml
                 </td>
-                <td className="px-3 py-2 text-slate-950">
+                <td className="px-3 py-2 text-[#37413d]">
                   {summary.diaperCount}次
                 </td>
-                <td className="px-3 py-2 text-slate-950">
+                <td className="px-3 py-2 text-[#37413d]">
                   {formatSleep(summary.sleepMinutes)}
                 </td>
               </tr>

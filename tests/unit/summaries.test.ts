@@ -1,5 +1,10 @@
 import { describe, expect, test } from "vitest";
-import { buildSevenDaySummary, summarizeDay } from "@/lib/summaries";
+import {
+  buildBottleProgress,
+  buildBottleTrend,
+  buildSevenDaySummary,
+  summarizeDay,
+} from "@/lib/summaries";
 
 describe("summary helpers", () => {
   test("summarizes feeding, diaper, and sleep totals for one local day", () => {
@@ -58,6 +63,28 @@ describe("summary helpers", () => {
       "2026-06-23",
       "2026-06-24",
       "2026-06-25",
+    ]);
+  });
+
+  test("builds bottle progress capped at 100 percent", () => {
+    expect(buildBottleProgress({ currentMl: 900, targetMl: 800 })).toEqual({
+      currentMl: 900,
+      targetMl: 800,
+      percent: 100,
+    });
+  });
+
+  test("builds bottle trend points scaled to the largest day", () => {
+    const trend = buildBottleTrend([
+      { date: "2026-06-23", feedingCount: 1, bottleMl: 120, diaperCount: 0, sleepMinutes: 0 },
+      { date: "2026-06-24", feedingCount: 1, bottleMl: 240, diaperCount: 0, sleepMinutes: 0 },
+      { date: "2026-06-25", feedingCount: 1, bottleMl: 60, diaperCount: 0, sleepMinutes: 0 },
+    ]);
+
+    expect(trend).toEqual([
+      { date: "2026-06-23", amountMl: 120, percent: 50 },
+      { date: "2026-06-24", amountMl: 240, percent: 100 },
+      { date: "2026-06-25", amountMl: 60, percent: 25 },
     ]);
   });
 });

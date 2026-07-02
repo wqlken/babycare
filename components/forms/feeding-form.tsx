@@ -28,14 +28,14 @@ export function FeedingForm({
       <form action={createBottleFeedingAction} className="space-y-4">
         <input name="childId" type="hidden" value={childId} />
         <input name="milkUnit" type="hidden" value={milkUnit} />
-        <h1 className="text-2xl font-semibold">记录瓶喂</h1>
-        <p className="text-sm text-slate-500">当前宝宝：{childName}</p>
+        <h1 className="text-2xl font-semibold text-[#37413d]">记录瓶喂</h1>
+        <p className="text-sm text-[#7b7168]">当前宝宝：{childName}</p>
         <label className="block">
-          <span className="text-sm font-medium text-slate-700">
+          <span className="text-sm font-medium text-[#5d6661]">
             奶量 {milkUnit}
           </span>
           <input
-            className="mt-2 w-full rounded border border-slate-300 px-3 py-2"
+            className="mt-2 min-h-12 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-3 text-lg"
             inputMode="decimal"
             min={1}
             name="amount"
@@ -44,15 +44,15 @@ export function FeedingForm({
             type="number"
           />
         </label>
-        <details className="rounded border border-slate-200 bg-white p-3">
-          <summary className="cursor-pointer text-sm font-medium text-slate-700">
+        <details className="rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] p-3">
+          <summary className="cursor-pointer py-1 text-sm font-medium text-[#5d6661]">
             选填详情
           </summary>
           <div className="mt-3 space-y-3">
             <label className="block">
-              <span className="text-sm font-medium text-slate-700">内容</span>
+              <span className="text-sm font-medium text-[#5d6661]">内容</span>
               <select
-                className="mt-2 w-full rounded border border-slate-300 px-3 py-2"
+                className="mt-2 min-h-12 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-3"
                 defaultValue="unknown"
                 name="bottleContent"
               >
@@ -64,25 +64,25 @@ export function FeedingForm({
               </select>
             </label>
             <label className="block">
-              <span className="text-sm font-medium text-slate-700">备注</span>
+              <span className="text-sm font-medium text-[#5d6661]">备注</span>
               <textarea
-                className="mt-2 w-full rounded border border-slate-300 px-3 py-2"
+                className="mt-2 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-3"
                 name="notes"
                 rows={3}
               />
             </label>
           </div>
         </details>
-        <button className="w-full rounded bg-slate-950 px-4 py-2.5 font-medium text-white">
+        <button className="min-h-14 w-full rounded-lg bg-[var(--primary-strong)] px-4 py-4 text-lg font-semibold text-white shadow-sm">
           保存瓶喂
         </button>
       </form>
       <form action={startBreastfeedingAction} className="space-y-4">
         <input name="childId" type="hidden" value={childId} />
-        <h2 className="text-xl font-semibold">开始母乳计时</h2>
-        <p className="text-sm text-slate-500">当前宝宝：{childName}</p>
+        <h2 className="text-xl font-semibold text-[#37413d]">开始母乳计时</h2>
+        <p className="text-sm text-[#7b7168]">当前宝宝：{childName}</p>
         <select
-          className="w-full rounded border border-slate-300 px-3 py-2"
+          className="min-h-12 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-3"
           name="breastSide"
           defaultValue="unknown"
         >
@@ -91,7 +91,7 @@ export function FeedingForm({
           <option value="right">右侧</option>
           <option value="both">两侧</option>
         </select>
-        <button className="w-full rounded bg-sky-700 px-4 py-2.5 font-medium text-white">
+        <button className="min-h-14 w-full rounded-lg bg-[var(--primary)] px-4 py-4 text-lg font-semibold text-white shadow-sm">
           开始母乳
         </button>
       </form>

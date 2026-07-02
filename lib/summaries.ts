@@ -97,3 +97,27 @@ export function buildSevenDaySummary(input: {
     });
   });
 }
+
+export function buildBottleProgress(input: {
+  currentMl: number;
+  targetMl: number;
+}) {
+  const targetMl = Math.max(1, Math.round(input.targetMl));
+  const currentMl = Math.max(0, Math.round(input.currentMl));
+
+  return {
+    currentMl,
+    targetMl,
+    percent: Math.min(100, Math.round((currentMl / targetMl) * 100)),
+  };
+}
+
+export function buildBottleTrend(summaries: DaySummary[]) {
+  const maxMl = Math.max(1, ...summaries.map((summary) => summary.bottleMl));
+
+  return summaries.map((summary) => ({
+    date: summary.date,
+    amountMl: summary.bottleMl,
+    percent: Math.round((summary.bottleMl / maxMl) * 100),
+  }));
+}

@@ -1,5 +1,6 @@
 import { requireUser } from "@/lib/auth/guards";
 import { ActiveTimers } from "@/components/dashboard/active-timers";
+import { BottleInsights } from "@/components/dashboard/bottle-insights";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { RecentEvents } from "@/components/dashboard/recent-events";
 import { SevenDaySummary } from "@/components/dashboard/seven-day-summary";
@@ -24,12 +25,12 @@ export default async function Home() {
 
   return (
     <section className="space-y-6">
-      <div>
-        <p className="text-sm font-medium text-sky-700">Babycare</p>
-        <h1 className="mt-2 text-3xl font-semibold text-slate-950">
+      <div className="rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-5 shadow-sm">
+        <p className="text-sm font-medium text-[var(--primary-strong)]">Babycare</p>
+        <h1 className="mt-2 text-3xl font-semibold text-[#37413d]">
           {currentChild?.name ?? "宝宝"} 的今日记录
         </h1>
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-[#766e66]">
           快速记录喂养、尿布和睡眠，家人可以一起查看当天状态。
         </p>
       </div>
@@ -46,6 +47,10 @@ export default async function Home() {
             lastFeedingAt={dashboard.lastFeedingAt}
             lastDiaperAt={dashboard.lastDiaperAt}
             lastSleepAt={dashboard.lastSleepAt}
+          />
+          <BottleInsights
+            today={dashboard.summary}
+            summaries={dashboard.sevenDaySummary}
           />
           <SevenDaySummary summaries={dashboard.sevenDaySummary} />
           <RecentEvents
