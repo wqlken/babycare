@@ -17,6 +17,7 @@ Status as of 2026-07-02:
 - V1.1 soft deletion, edited metadata, optimistic bottle editing, owner CSV export, family administration, seven-day summary, PWA metadata, and network-unavailable handling are implemented on `main`.
 - V1.2 bottle content, stool details, milk unit preference, ounce input conversion, child archiving, archived-child record blocking, and creator display name snapshot coverage are implemented on `main` and tagged as `v1.2.0`.
 - Post-v1.2 UI polish is implemented on `main`: the dashboard and high-frequency forms use a softer low-saturation palette, larger touch targets, and milk volume progress/trend visuals.
+- Post-v1.2 record-entry polish is implemented in the current follow-up branch: feeding, diaper, and sleep forms show editable local record/start times, high-frequency details stay visible instead of collapsed, and the app shell plus record forms provide a direct return-home shortcut.
 - Latest verified commands on `main`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`. Docker smoke testing was not run locally because Docker CLI is not installed in this environment.
 
 ### V1: Core Family Logging
@@ -29,6 +30,7 @@ V1 includes:
 - First-run onboarding that creates the default family and guides creation of the first child.
 - Baby profiles with name, birthday, gender, and notes.
 - Fast mobile-first logging for feedings, diapers, and sleep.
+- Editable local record/start times on new record forms for after-the-fact logging.
 - Timer-based start and stop flows for breastfeeding and sleep.
 - A dashboard showing last events and today's totals.
 - A softer dashboard presentation with large quick action targets and milk volume progress/trend visuals.
@@ -98,9 +100,9 @@ Routes:
 
 First-run onboarding should be explicit. The first registered owner automatically gets a default family workspace, then is guided to create the first child. If a logged-in family has no children, the root dashboard should redirect or route the user into the child creation flow instead of showing an empty dashboard.
 
-The dashboard should be optimized for one-handed phone use. It should show time since the last feeding, diaper, and sleep event, today's feeding count and bottle volume, today's diaper count, today's sleep duration, and large actions for feeding, diaper, and sleep logging. In-progress breastfeeding and sleep records should appear as active timer states on the dashboard with clear stop actions. Bottle feeding and diaper logging remain one-shot quick forms.
+The dashboard should be optimized for one-handed phone use. It should show time since the last feeding, diaper, and sleep event, today's feeding count and bottle volume, today's diaper count, today's sleep duration, and large actions for feeding, diaper, and sleep logging. In-progress breastfeeding and sleep records should appear as active timer states on the dashboard with clear stop actions. Bottle feeding and diaper logging remain one-shot quick forms, and primary app views should keep a direct route back to the home dashboard.
 
-Fast logging is a product acceptance criterion. Bottle and diaper records should be savable from the dashboard path with at most two user actions after choosing the action, using sensible defaults and optional expandable details. Breastfeeding and sleep should support one action to start and one action to stop. Less common fields belong in expandable sections or later edit views.
+Fast logging is a product acceptance criterion. Bottle and diaper records should be savable from the dashboard path with at most two user actions after choosing the action, using sensible defaults and visible fields rather than collapsed detail sections. Breastfeeding and sleep should support one action to start and one action to stop. New record forms should display the default local record or start time and allow it to be edited before saving, so delayed entries do not require later correction. Less common fields may move to later edit views if they make the primary form too long.
 
 Each user should have a `currentChildId` preference. The root dashboard uses the user's current child when available; otherwise it selects the first child in the family. All new record pages must show the selected child's name clearly and allow switching children before saving, to reduce accidental logging to the wrong child. The dashboard and child switcher should show the child's day age or month age based on birthday and the family timezone; growth charts remain out of scope for the initial product phases.
 
@@ -176,6 +178,7 @@ The initial product phases must not hard-delete families or children. V1.2 adds 
 - Bottle feeding requires an amount in milliliters.
 - Bottle content, when present, must use the allowed enum values.
 - Breastfeeding requires timing information and a valid `breastSide`, but no amount.
+- New feeding, diaper, and sleep record times must parse from the family timezone and must not be submitted in the future beyond a small clock-skew allowance.
 - Diaper records require one of `wet`, `dirty`, or `both`.
 - Stool color and consistency are allowed only for `dirty` and `both` diaper records.
 - A child may not have more than one active sleep record.
@@ -215,6 +218,7 @@ Automated tests should cover:
 - Owner password reset works for caregivers and invalidates existing sessions.
 - User current-child preference controls the default dashboard child.
 - New record pages show the selected child and support switching before save.
+- New record pages show the default local record/start time and allow editing before save.
 - First owner onboarding creates a default family and guides child creation.
 - Families with no children route users to the child creation flow.
 - Child age appears on the dashboard and child switcher.

@@ -61,12 +61,74 @@ function zonedLocalDateTimeToUtc(dateTime: string, timezone: string) {
   return new Date(candidate.getTime() - adjustedOffset);
 }
 
+function padDatePart(value: number) {
+  return String(value).padStart(2, "0");
+}
+
 export function toLocalDateString(date: Date, timezone: string) {
   const parts = getDateParts(date, timezone);
-  const month = String(parts.month).padStart(2, "0");
-  const day = String(parts.day).padStart(2, "0");
+  const month = padDatePart(parts.month);
+  const day = padDatePart(parts.day);
 
   return `${parts.year}-${month}-${day}`;
+}
+
+export function formatDateTimeLocalInput(
+  date: Date,
+  timezone = "Asia/Shanghai",
+) {
+  const parts = getDateParts(date, timezone);
+
+  return `${parts.year}-${padDatePart(parts.month)}-${padDatePart(
+    parts.day,
+  )}T${padDatePart(parts.hour)}:${padDatePart(parts.minute)}`;
+}
+
+export function parseRecordDateTimeInput(
+  value: string,
+  options?: {
+    timezone?: string;
+    now?: Date;
+  },
+) {
+  const timezone = options?.timezone ?? "Asia/Shanghai";
+  const now = options?.now ?? new Date();
+
+  const match = value.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/,
+  );
+  if (!match) {
+    throw new Error("Record time is invalid.");
+  }
+
+  const [, yearText, monthText, dayText, hourText, minuteText] = match;
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+
+  if (
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > new Date(Date.UTC(year, month, 0)).getUTCDate() ||
+    hour > 23 ||
+    minute > 59
+  ) {
+    throw new Error("Record time is invalid.");
+  }
+
+  const parsed = zonedLocalDateTimeToUtc(value, timezone);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error("Record time is invalid.");
+  }
+
+  if (parsed.getTime() > now.getTime() + 5 * 60_000) {
+    throw new Error("Record time cannot be in the future.");
+  }
+
+  return parsed;
 }
 
 export function addDays(date: string, days: number) {

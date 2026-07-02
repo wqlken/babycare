@@ -8,6 +8,7 @@ import {
   stopBreastfeeding,
   updateBottleFeeding,
 } from "@/lib/records/service";
+import { parseRecordDateTimeInput } from "@/lib/time";
 import { parseMilkVolumeToMl, type MilkUnit } from "@/lib/units";
 
 function redirectWithError(childId: string, target: string, error: string) {
@@ -21,9 +22,13 @@ export async function createBottleFeedingAction(formData: FormData) {
   const childId = String(formData.get("childId") ?? "");
   const milkUnit = String(formData.get("milkUnit") ?? "ml") as MilkUnit;
   let amountMl = 0;
+  let eventTime = new Date();
 
   try {
     amountMl = parseMilkVolumeToMl(String(formData.get("amount") ?? ""), milkUnit);
+    eventTime = parseRecordDateTimeInput(String(formData.get("eventTime") ?? ""), {
+      timezone: process.env.FAMILY_TIMEZONE ?? "Asia/Shanghai",
+    });
   } catch (error) {
     redirectWithError(
       childId,
@@ -36,7 +41,7 @@ export async function createBottleFeedingAction(formData: FormData) {
     childId,
     amountMl,
     bottleContent: String(formData.get("bottleContent") ?? "unknown"),
-    eventTime: new Date(),
+    eventTime,
     notes: String(formData.get("notes") ?? ""),
   });
 
@@ -50,6 +55,20 @@ export async function createBottleFeedingAction(formData: FormData) {
 export async function startBreastfeedingAction(formData: FormData) {
   const user = await requireUser();
   const childId = String(formData.get("childId") ?? "");
+  let startTime = new Date();
+
+  try {
+    startTime = parseRecordDateTimeInput(String(formData.get("startTime") ?? ""), {
+      timezone: process.env.FAMILY_TIMEZONE ?? "Asia/Shanghai",
+    });
+  } catch (error) {
+    redirectWithError(
+      childId,
+      "new",
+      error instanceof Error ? error.message : "Record time is invalid.",
+    );
+  }
+
   const result = await startBreastfeeding(user.id, {
     childId,
     breastSide:
@@ -58,7 +77,7 @@ export async function startBreastfeedingAction(formData: FormData) {
         | "right"
         | "both"
         | "unknown") ?? "unknown",
-    startTime: new Date(),
+    startTime,
     notes: String(formData.get("notes") ?? ""),
   });
 

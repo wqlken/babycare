@@ -1,7 +1,9 @@
 import { describe, expect, test } from "vitest";
 import {
+  formatDateTimeLocalInput,
   formatChildAge,
   getLocalDayRange,
+  parseRecordDateTimeInput,
   splitDurationByLocalDay,
 } from "@/lib/time";
 
@@ -40,5 +42,41 @@ describe("time helpers", () => {
         now: new Date("2026-06-25T00:00:00.000Z"),
       }),
     ).toBe("5个月");
+  });
+
+  test("parses record datetime-local input in the family timezone", () => {
+    const parsed = parseRecordDateTimeInput("2026-06-25T08:30", {
+      timezone: "Asia/Shanghai",
+      now: new Date("2026-06-25T00:35:00.000Z"),
+    });
+
+    expect(parsed.toISOString()).toBe("2026-06-25T00:30:00.000Z");
+  });
+
+  test("formats record time for datetime-local inputs", () => {
+    expect(
+      formatDateTimeLocalInput(
+        new Date("2026-06-25T00:30:00.000Z"),
+        "Asia/Shanghai",
+      ),
+    ).toBe("2026-06-25T08:30");
+  });
+
+  test("rejects record times too far in the future", () => {
+    expect(() =>
+      parseRecordDateTimeInput("2026-06-25T08:41", {
+        timezone: "Asia/Shanghai",
+        now: new Date("2026-06-25T00:35:00.000Z"),
+      }),
+    ).toThrow("Record time cannot be in the future.");
+  });
+
+  test("rejects invalid calendar dates from record time input", () => {
+    expect(() =>
+      parseRecordDateTimeInput("2026-02-31T08:30", {
+        timezone: "Asia/Shanghai",
+        now: new Date("2026-06-25T00:35:00.000Z"),
+      }),
+    ).toThrow("Record time is invalid.");
   });
 });

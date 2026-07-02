@@ -8,13 +8,15 @@
 
 **Tech Stack:** Next.js, TypeScript, Prisma, PostgreSQL, Tailwind CSS, Playwright or Vitest where appropriate, Docker Compose.
 
-**Current Status (2026-07-01):**
+**Current Status (2026-07-02):**
 
 - Phase V1 is implemented on `main`.
 - V1 implementation also includes follow-up management polish that was added after the original task list: baby profile settings, account profile/password settings, family member removal with last-owner protection, owner record deletion from the timeline, and bottle feeding edit controls.
 - Phase V1.1 is implemented on `main`.
-- Phase V1.2 is implemented on `feat/v1.2-household-polish`.
-- Latest verified commands on `feat/v1.2-household-polish`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
+- Phase V1.2 is implemented on `main`.
+- Post-v1.2 UI polish is implemented on `main`.
+- Post-v1.2 record-entry polish is in progress on `feat/editable-record-time`: editable local record/start times, visible high-frequency details instead of collapsed sections, and return-home shortcuts.
+- Latest verified commands on `main`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
 
 ---
 
@@ -631,7 +633,7 @@ Support sleep start/stop and backfill with one active sleep per child.
 
 - [x] **Step 4: Add forms and pages**
 
-Create mobile-first forms. Keep optional details collapsed by default.
+Create mobile-first forms. Keep high-frequency fields visible instead of hiding them behind collapsed sections.
 
 - [x] **Step 5: Run tests**
 
@@ -849,7 +851,7 @@ git commit -m "docs: add Docker backup workflow"
 - [x] Add `bottleContent`, `stoolColor`, and `stoolConsistency`.
 - [x] Add `milkUnit` preference UI.
 - [x] Convert oz input into stored ml.
-- [x] Keep optional fields collapsed in quick forms.
+- [x] Keep optional detail fields available in quick forms.
 - [x] Run unit and integration tests.
 - [x] Commit with `feat: add record details`.
 

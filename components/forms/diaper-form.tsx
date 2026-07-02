@@ -1,4 +1,6 @@
 import { createDiaperAction } from "@/app/actions/diapers";
+import { formatDateTimeLocalInput } from "@/lib/time";
+import Link from "next/link";
 
 type DiaperFormProps = {
   childId: string;
@@ -7,6 +9,8 @@ type DiaperFormProps = {
 };
 
 export function DiaperForm({ childId, childName, error }: DiaperFormProps) {
+  const defaultTime = formatDateTimeLocalInput(new Date());
+
   return (
     <form action={createDiaperAction} className="space-y-5">
       <input name="childId" type="hidden" value={childId} />
@@ -17,6 +21,16 @@ export function DiaperForm({ childId, childName, error }: DiaperFormProps) {
           {error}
         </p>
       ) : null}
+      <label className="block">
+        <span className="text-sm font-medium text-[#5d6661]">记录时间</span>
+        <input
+          className="mt-2 min-h-12 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-3"
+          defaultValue={defaultTime}
+          name="eventTime"
+          required
+          type="datetime-local"
+        />
+      </label>
       <label className="block">
         <span className="text-sm font-medium text-[#5d6661]">类型</span>
         <select
@@ -29,58 +43,57 @@ export function DiaperForm({ childId, childName, error }: DiaperFormProps) {
           <option value="both">都有</option>
         </select>
       </label>
-      <details className="rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] p-3">
-        <summary className="cursor-pointer py-1 text-sm font-medium text-[#5d6661]">
-          选填详情
-        </summary>
-        <div className="mt-3 space-y-3">
-          <label className="block">
-            <span className="text-sm font-medium text-[#5d6661]">便便颜色</span>
-            <select
-              className="mt-2 min-h-12 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-3"
-              defaultValue=""
-              name="stoolColor"
-            >
-              <option value="">未指定</option>
-              <option value="yellow">黄色</option>
-              <option value="brown">棕色</option>
-              <option value="green">绿色</option>
-              <option value="black">黑色</option>
-              <option value="red">红色</option>
-              <option value="white">白色</option>
-              <option value="other">其他</option>
-            </select>
-          </label>
-          <label className="block">
-            <span className="text-sm font-medium text-[#5d6661]">便便性状</span>
-            <select
-              className="mt-2 min-h-12 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-3"
-              defaultValue=""
-              name="stoolConsistency"
-            >
-              <option value="">未指定</option>
-              <option value="watery">水样</option>
-              <option value="loose">稀软</option>
-              <option value="soft">软便</option>
-              <option value="formed">成形</option>
-              <option value="hard">偏硬</option>
-              <option value="mucousy">黏液</option>
-              <option value="other">其他</option>
-            </select>
-          </label>
-          <label className="block">
-            <span className="text-sm font-medium text-[#5d6661]">备注</span>
-            <textarea
-              className="mt-2 w-full rounded-lg border border-[var(--border-soft)] bg-white px-3 py-3"
-              name="notes"
-              rows={3}
-            />
-          </label>
-        </div>
-      </details>
+      <label className="block">
+        <span className="text-sm font-medium text-[#5d6661]">便便颜色</span>
+        <select
+          className="mt-2 min-h-12 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-3"
+          defaultValue=""
+          name="stoolColor"
+        >
+          <option value="">未指定</option>
+          <option value="yellow">黄色</option>
+          <option value="brown">棕色</option>
+          <option value="green">绿色</option>
+          <option value="black">黑色</option>
+          <option value="red">红色</option>
+          <option value="white">白色</option>
+          <option value="other">其他</option>
+        </select>
+      </label>
+      <label className="block">
+        <span className="text-sm font-medium text-[#5d6661]">便便性状</span>
+        <select
+          className="mt-2 min-h-12 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-3"
+          defaultValue=""
+          name="stoolConsistency"
+        >
+          <option value="">未指定</option>
+          <option value="watery">水样</option>
+          <option value="loose">稀软</option>
+          <option value="soft">软便</option>
+          <option value="formed">成形</option>
+          <option value="hard">偏硬</option>
+          <option value="mucousy">黏液</option>
+          <option value="other">其他</option>
+        </select>
+      </label>
+      <label className="block">
+        <span className="text-sm font-medium text-[#5d6661]">备注</span>
+        <textarea
+          className="mt-2 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-3"
+          name="notes"
+          rows={3}
+        />
+      </label>
       <button className="min-h-14 w-full rounded-lg bg-[var(--accent)] px-4 py-4 text-lg font-semibold text-white shadow-sm">
         保存尿布
       </button>
+      <Link
+        className="flex min-h-12 items-center justify-center rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 font-medium text-[#5d6661]"
+        href="/"
+      >
+        返回首页
+      </Link>
     </form>
   );
 }

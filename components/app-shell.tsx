@@ -24,6 +24,12 @@ export function AppShell({
             currentChildId={currentChildId}
           />
           <div className="flex flex-wrap items-center gap-2">
+            <Link
+              className="rounded border border-[var(--border-soft)] bg-white/60 px-3 py-2 text-sm font-medium text-[#4a514e]"
+              href="/"
+            >
+              首页
+            </Link>
             {currentChildId ? (
               <Link
                 className="rounded border border-[var(--border-soft)] bg-white/60 px-3 py-2 text-sm font-medium text-[#4a514e]"

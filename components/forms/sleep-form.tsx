@@ -1,4 +1,6 @@
 import { startSleepAction } from "@/app/actions/sleep";
+import { formatDateTimeLocalInput } from "@/lib/time";
+import Link from "next/link";
 
 type SleepFormProps = {
   childId: string;
@@ -7,6 +9,8 @@ type SleepFormProps = {
 };
 
 export function SleepForm({ childId, childName, error }: SleepFormProps) {
+  const defaultTime = formatDateTimeLocalInput(new Date());
+
   return (
     <form action={startSleepAction} className="space-y-5">
       <input name="childId" type="hidden" value={childId} />
@@ -18,6 +22,16 @@ export function SleepForm({ childId, childName, error }: SleepFormProps) {
         </p>
       ) : null}
       <label className="block">
+        <span className="text-sm font-medium text-[#5d6661]">开始时间</span>
+        <input
+          className="mt-2 min-h-12 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-3"
+          defaultValue={defaultTime}
+          name="startTime"
+          required
+          type="datetime-local"
+        />
+      </label>
+      <label className="block">
         <span className="text-sm font-medium text-[#5d6661]">备注</span>
         <textarea
           className="mt-2 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-3"
@@ -28,6 +42,12 @@ export function SleepForm({ childId, childName, error }: SleepFormProps) {
       <button className="min-h-14 w-full rounded-lg bg-[#737196] px-4 py-4 text-lg font-semibold text-white shadow-sm">
         开始睡眠
       </button>
+      <Link
+        className="flex min-h-12 items-center justify-center rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 font-medium text-[#5d6661]"
+        href="/"
+      >
+        返回首页
+      </Link>
     </form>
   );
 }
