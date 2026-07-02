@@ -851,7 +851,7 @@ git commit -m "docs: add Docker backup workflow"
 - [x] Convert oz input into stored ml.
 - [x] Keep optional fields collapsed in quick forms.
 - [x] Run unit and integration tests.
-- [ ] Commit with `feat: add record details`.
+- [x] Commit with `feat: add record details`.
 
 ### Task 15: Child Archiving and Creator Snapshots
 
@@ -867,7 +867,7 @@ git commit -m "docs: add Docker backup workflow"
 - [x] Block normal new records for archived children.
 - [x] Store creator display name snapshot on record creation.
 - [x] Run tests.
-- [ ] Commit with `feat: add household data polish`.
+- [x] Commit with `feat: add household data polish`.
 
 ### Task 16: Final Verification
 
@@ -896,7 +896,7 @@ docker compose down
 ```
 
 - [x] Update README with final development, test, Docker, backup, and deployment commands.
-- [ ] Commit with `docs: finalize project instructions`.
+- [x] Commit with `docs: finalize project instructions`.
 
 Docker smoke test note: not run in the local worktree because Docker CLI is not installed in this environment (`docker` command not found).
 
