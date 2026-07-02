@@ -10,6 +10,8 @@ export async function createDiaperAction(formData: FormData) {
   const result = await createDiaper(user.id, {
     childId,
     type: String(formData.get("type") ?? "wet") as "wet" | "dirty" | "both",
+    stoolColor: String(formData.get("stoolColor") ?? ""),
+    stoolConsistency: String(formData.get("stoolConsistency") ?? ""),
     time: new Date(),
     notes: String(formData.get("notes") ?? ""),
   });

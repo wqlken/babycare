@@ -3,6 +3,7 @@ import {
   authenticateUser,
   registerUser,
   updatePassword,
+  updatePreferences,
   updateProfile,
   type AuthDatabase,
 } from "@/lib/auth/service";
@@ -53,6 +54,7 @@ function createAuthDatabase(): AuthDatabase {
     },
     userPreference: {
       create: vi.fn(async () => ({ id: "preference-1" })),
+      upsert: vi.fn(async () => ({ id: "preference-1" })),
     },
   };
 }
@@ -260,5 +262,47 @@ describe("authentication rules", () => {
       ok: false,
       error: "Current password is incorrect.",
     });
+  });
+
+  test("users can update milk unit preference", async () => {
+    const db = createAuthDatabase();
+
+    await expect(
+      updatePreferences(
+        "user-1",
+        {
+          milkUnit: "oz",
+        },
+        db,
+      ),
+    ).resolves.toEqual({ ok: true });
+    expect(db.userPreference.upsert).toHaveBeenCalledWith({
+      where: { userId: "user-1" },
+      create: {
+        userId: "user-1",
+        milkUnit: "oz",
+      },
+      update: {
+        milkUnit: "oz",
+      },
+    });
+  });
+
+  test("milk unit preference rejects unsupported units", async () => {
+    const db = createAuthDatabase();
+
+    await expect(
+      updatePreferences(
+        "user-1",
+        {
+          milkUnit: "cup",
+        },
+        db,
+      ),
+    ).resolves.toEqual({
+      ok: false,
+      error: "Milk unit must be ml or oz.",
+    });
+    expect(db.userPreference.upsert).not.toHaveBeenCalled();
   });
 });

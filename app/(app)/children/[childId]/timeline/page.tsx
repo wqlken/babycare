@@ -70,6 +70,8 @@ export default async function TimelinePage({ params, searchParams }: PageProps) 
               >
                 <input name="childId" type="hidden" value={childId} />
                 <input name="recordId" type="hidden" value={item.id} />
+                <input name="milkUnit" type="hidden" value="ml" />
+                <input name="bottleContent" type="hidden" value="unknown" />
                 <input
                   name="updatedAt"
                   type="hidden"
@@ -81,7 +83,7 @@ export default async function TimelinePage({ params, searchParams }: PageProps) 
                     className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5 text-sm"
                     defaultValue={item.amountMl ?? ""}
                     min={1}
-                    name="amountMl"
+                    name="amount"
                     required
                     type="number"
                   />

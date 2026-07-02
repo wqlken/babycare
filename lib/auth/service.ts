@@ -57,6 +57,16 @@ export type AuthDatabase = {
   };
   userPreference: {
     create: (args: { data: { userId: string } }) => Promise<unknown>;
+    upsert?: (args: {
+      where: { userId: string };
+      create: {
+        userId: string;
+        milkUnit: "ml" | "oz";
+      };
+      update: {
+        milkUnit: "ml" | "oz";
+      };
+    }) => Promise<unknown>;
   };
   invite?: {
     findFirst: (args: {
@@ -287,6 +297,35 @@ export async function updatePassword(
     where: { id: userId },
     data: {
       passwordHash,
+    },
+  });
+
+  return { ok: true };
+}
+
+export async function updatePreferences(
+  userId: string,
+  input: {
+    milkUnit: string;
+  },
+  db: AuthDatabase = prisma,
+): Promise<AccountResult> {
+  if (!db.userPreference.upsert) {
+    return { ok: false, error: "Preference update is not available." };
+  }
+
+  if (input.milkUnit !== "ml" && input.milkUnit !== "oz") {
+    return { ok: false, error: "Milk unit must be ml or oz." };
+  }
+
+  await db.userPreference.upsert({
+    where: { userId },
+    create: {
+      userId,
+      milkUnit: input.milkUnit,
+    },
+    update: {
+      milkUnit: input.milkUnit,
     },
   });
 

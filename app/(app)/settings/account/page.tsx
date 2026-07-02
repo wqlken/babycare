@@ -1,5 +1,6 @@
 import {
   updatePasswordAction,
+  updatePreferencesAction,
   updateProfileAction,
 } from "@/app/actions/account";
 import { requireUser } from "@/lib/auth/guards";
@@ -53,6 +54,23 @@ export default async function AccountSettingsPage({ searchParams }: PageProps) {
         </label>
         <button className="rounded bg-slate-950 px-4 py-2 font-medium text-white">
           保存资料
+        </button>
+      </form>
+      <form action={updatePreferencesAction} className="space-y-5 rounded border border-slate-200 bg-white p-4">
+        <h2 className="text-lg font-semibold">记录偏好</h2>
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">奶量单位</span>
+          <select
+            className="mt-2 w-full rounded border border-slate-300 px-3 py-2"
+            defaultValue={user.preference?.milkUnit === "oz" ? "oz" : "ml"}
+            name="milkUnit"
+          >
+            <option value="ml">毫升 ml</option>
+            <option value="oz">盎司 oz</option>
+          </select>
+        </label>
+        <button className="rounded bg-slate-950 px-4 py-2 font-medium text-white">
+          保存偏好
         </button>
       </form>
       <form action={updatePasswordAction} className="space-y-5 rounded border border-slate-200 bg-white p-4">

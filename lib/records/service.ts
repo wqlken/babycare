@@ -20,6 +20,7 @@ type FeedingRecordCreateInput = {
   startTime: Date;
   endTime?: Date | null;
   amountMl?: number | null;
+  bottleContent?: BottleContent | null;
   notes?: string | null;
 };
 
@@ -39,6 +40,7 @@ type ActiveFeedingRecord = {
   startTime?: Date;
   endTime?: Date | null;
   amountMl?: number | null;
+  bottleContent?: BottleContent | null;
   notes?: string | null;
   updatedAt?: Date;
   deletedAt?: Date | null;
@@ -74,6 +76,7 @@ export type RecordsDatabase = {
       where: {
         id: string;
         familyId: string;
+        archivedAt: null;
       };
     }) => Promise<{ id: string; familyId: string } | null>;
   };
@@ -95,6 +98,7 @@ export type RecordsDatabase = {
       data: {
         endTime?: Date;
         amountMl?: number;
+        bottleContent?: BottleContent | null;
         notes?: string | null;
         deletedAt?: Date;
         deletedById?: string;
@@ -125,6 +129,8 @@ export type RecordsDatabase = {
         creatorDisplayName: string;
         time: Date;
         type: "wet" | "dirty" | "both";
+        stoolColor?: StoolColor | null;
+        stoolConsistency?: StoolConsistency | null;
         notes?: string | null;
       };
     }) => Promise<{ id: string }>;
@@ -171,6 +177,63 @@ type RecordResult =
 
 type DeleteRecordResult = { ok: true } | { ok: false; error: string };
 
+type BottleContent =
+  | "formula"
+  | "expressed_breast_milk"
+  | "mixed"
+  | "other"
+  | "unknown";
+
+type StoolColor =
+  | "yellow"
+  | "brown"
+  | "green"
+  | "black"
+  | "red"
+  | "white"
+  | "other"
+  | "unknown";
+
+type StoolConsistency =
+  | "watery"
+  | "loose"
+  | "soft"
+  | "formed"
+  | "hard"
+  | "mucousy"
+  | "other"
+  | "unknown";
+
+const bottleContents = new Set<string>([
+  "formula",
+  "expressed_breast_milk",
+  "mixed",
+  "other",
+  "unknown",
+]);
+
+const stoolColors = new Set<string>([
+  "yellow",
+  "brown",
+  "green",
+  "black",
+  "red",
+  "white",
+  "other",
+  "unknown",
+]);
+
+const stoolConsistencies = new Set<string>([
+  "watery",
+  "loose",
+  "soft",
+  "formed",
+  "hard",
+  "mucousy",
+  "other",
+  "unknown",
+]);
+
 async function getRecordContext(
   userId: string,
   childId: string,
@@ -194,6 +257,7 @@ async function getRecordContext(
     where: {
       id: childId,
       familyId: membership.familyId,
+      archivedAt: null,
     },
   });
 
@@ -214,6 +278,20 @@ function cleanNotes(notes?: string | null) {
   return trimmed ? trimmed : null;
 }
 
+function cleanBottleContent(value?: string | null): BottleContent {
+  return bottleContents.has(value ?? "") ? (value as BottleContent) : "unknown";
+}
+
+function cleanStoolColor(value?: string | null): StoolColor | null {
+  if (!value) return null;
+  return stoolColors.has(value) ? (value as StoolColor) : "unknown";
+}
+
+function cleanStoolConsistency(value?: string | null): StoolConsistency | null {
+  if (!value) return null;
+  return stoolConsistencies.has(value) ? (value as StoolConsistency) : "unknown";
+}
+
 function canEditRecord(
   membership: MembershipRecord,
   userId: string,
@@ -227,6 +305,7 @@ export async function createBottleFeeding(
   input: {
     childId: string;
     amountMl: number;
+    bottleContent?: string | null;
     eventTime: Date;
     notes?: string | null;
   },
@@ -248,6 +327,7 @@ export async function createBottleFeeding(
       startTime: input.eventTime,
       endTime: input.eventTime,
       amountMl: input.amountMl,
+      bottleContent: cleanBottleContent(input.bottleContent),
       notes: cleanNotes(input.notes),
     },
   });
@@ -306,6 +386,8 @@ export async function createDiaper(
   input: {
     childId: string;
     type: "wet" | "dirty" | "both";
+    stoolColor?: string | null;
+    stoolConsistency?: string | null;
     time: Date;
     notes?: string | null;
   },
@@ -320,6 +402,9 @@ export async function createDiaper(
       creatorId: context.user.id,
       creatorDisplayName: context.user.displayName,
       type: input.type,
+      stoolColor: input.type === "wet" ? null : cleanStoolColor(input.stoolColor),
+      stoolConsistency:
+        input.type === "wet" ? null : cleanStoolConsistency(input.stoolConsistency),
       time: input.time,
       notes: cleanNotes(input.notes),
     },
@@ -441,6 +526,7 @@ export async function updateBottleFeeding(
     childId: string;
     recordId: string;
     amountMl: number;
+    bottleContent?: string | null;
     updatedAt: Date;
     notes?: string | null;
   },
@@ -483,6 +569,7 @@ export async function updateBottleFeeding(
     where: { id: existing.id },
     data: {
       amountMl: input.amountMl,
+      bottleContent: cleanBottleContent(input.bottleContent),
       notes: cleanNotes(input.notes),
       updatedById: context.user.id,
     },

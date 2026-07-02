@@ -35,6 +35,9 @@ describe("Prisma schema", () => {
       "FeedingType",
       "BreastSide",
       "DiaperType",
+      "BottleContent",
+      "StoolColor",
+      "StoolConsistency",
     ]) {
       expect(schema).toContain(`enum ${enumName} {`);
     }
@@ -90,5 +93,13 @@ describe("Prisma schema", () => {
 
     expect(schema).toContain("sessionRevokedAt");
     expect(migration).toContain('ADD COLUMN "sessionRevokedAt" TIMESTAMP(3)');
+  });
+
+  test("defines V1.2 record detail fields", () => {
+    const schema = readProjectFile("prisma/schema.prisma");
+
+    expect(schema).toContain("bottleContent");
+    expect(schema).toContain("stoolColor");
+    expect(schema).toContain("stoolConsistency");
   });
 });

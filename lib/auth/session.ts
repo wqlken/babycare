@@ -41,6 +41,9 @@ export async function getCurrentUser() {
     where: {
       id: session.userId,
     },
+    include: {
+      preference: true,
+    },
   });
 
   if (!user || !isSessionIssuedAfterRevocation(session.issuedAt, user.sessionRevokedAt)) {

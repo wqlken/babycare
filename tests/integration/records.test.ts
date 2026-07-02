@@ -14,9 +14,11 @@ import {
 function createRecordsDatabase(options?: {
   userId?: string;
   role?: "owner" | "caregiver";
+  childArchivedAt?: Date | null;
 }): RecordsDatabase {
   const userId = options?.userId ?? "user-1";
   const role = options?.role ?? "owner";
+  const childArchivedAt = options?.childArchivedAt ?? null;
   const feedings: Array<{
     id: string;
     childId: string;
@@ -27,6 +29,23 @@ function createRecordsDatabase(options?: {
     startTime: Date;
     endTime: Date | null;
     amountMl: number | null;
+    bottleContent: "formula" | "expressed_breast_milk" | "mixed" | "other" | "unknown" | null;
+    notes: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    deletedAt: Date | null;
+    deletedById: string | null;
+    updatedById: string | null;
+  }> = [];
+  const diapers: Array<{
+    id: string;
+    childId: string;
+    creatorId: string;
+    creatorDisplayName: string;
+    time: Date;
+    type: "wet" | "dirty" | "both";
+    stoolColor: "yellow" | "brown" | "green" | "black" | "red" | "white" | "other" | "unknown" | null;
+    stoolConsistency: "watery" | "loose" | "soft" | "formed" | "hard" | "mucousy" | "other" | "unknown" | null;
     notes: string | null;
     createdAt: Date;
     updatedAt: Date;
@@ -65,7 +84,9 @@ function createRecordsDatabase(options?: {
     },
     child: {
       findFirst: vi.fn(async ({ where }) =>
-        where.id === "child-1" && where.familyId === "family-1"
+        where.id === "child-1" &&
+        where.familyId === "family-1" &&
+        (!("archivedAt" in where) || childArchivedAt === where.archivedAt)
           ? { id: "child-1", familyId: "family-1" }
           : null,
       ),
@@ -105,6 +126,7 @@ function createRecordsDatabase(options?: {
           startTime: data.startTime,
           endTime: data.endTime ?? null,
           amountMl: data.amountMl ?? null,
+          bottleContent: data.bottleContent ?? null,
           notes: data.notes ?? null,
           createdAt: now,
           updatedAt: now,
@@ -137,13 +159,54 @@ function createRecordsDatabase(options?: {
       }),
     },
     diaperRecord: {
-      create: vi.fn(async ({ data }) => ({
-        id: "diaper-1",
-        ...data,
-      })),
-      findFirst: vi.fn(async () => null),
-      update: vi.fn(async () => ({ id: "diaper-1" })),
-      delete: vi.fn(async () => ({ id: "diaper-1" })),
+      create: vi.fn(async ({ data }) => {
+        const now = new Date("2026-06-25T01:00:00.000Z");
+        const diaper = {
+          id: `diaper-${diapers.length + 1}`,
+          childId: data.childId,
+          creatorId: data.creatorId,
+          creatorDisplayName: data.creatorDisplayName,
+          time: data.time,
+          type: data.type,
+          stoolColor: data.stoolColor ?? null,
+          stoolConsistency: data.stoolConsistency ?? null,
+          notes: data.notes ?? null,
+          createdAt: now,
+          updatedAt: now,
+          deletedAt: null,
+          deletedById: null,
+          updatedById: null,
+        };
+        diapers.push(diaper);
+        return diaper;
+      }),
+      findFirst: vi.fn(async ({ where }) => {
+        return (
+          diapers.find(
+            (diaper) =>
+              diaper.id === where.id &&
+              (!("childId" in where) || diaper.childId === where.childId) &&
+              (!("deletedAt" in where) || diaper.deletedAt === where.deletedAt),
+          ) ?? null
+        );
+      }),
+      update: vi.fn(async ({ where, data }) => {
+        const diaper = diapers.find((item) => item.id === where.id);
+        if (!diaper) throw new Error("Diaper not found.");
+        diaper.notes = "notes" in data ? data.notes : diaper.notes;
+        diaper.deletedAt = "deletedAt" in data ? data.deletedAt : diaper.deletedAt;
+        diaper.deletedById =
+          "deletedById" in data ? data.deletedById : diaper.deletedById;
+        diaper.updatedById =
+          "updatedById" in data ? data.updatedById : diaper.updatedById;
+        return diaper;
+      }),
+      delete: vi.fn(async ({ where }) => {
+        const index = diapers.findIndex((item) => item.id === where.id);
+        if (index === -1) throw new Error("Diaper not found.");
+        const [record] = diapers.splice(index, 1);
+        return record;
+      }),
     },
     sleepRecord: {
       findFirst: vi.fn(async ({ where }) => {
@@ -233,6 +296,74 @@ describe("record creation", () => {
     });
   });
 
+  test("creates a bottle feeding with content details", async () => {
+    const db = createRecordsDatabase();
+
+    const result = await createBottleFeeding(
+      "user-1",
+      {
+        childId: "child-1",
+        amountMl: 120,
+        bottleContent: "expressed_breast_milk",
+        eventTime: new Date("2026-06-25T01:00:00.000Z"),
+      },
+      db,
+    );
+
+    expect(result).toEqual({ ok: true, recordId: "feeding-1" });
+    expect(db.feedingRecord.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        bottleContent: "expressed_breast_milk",
+      }),
+    });
+  });
+
+  test("stores creator display name as a snapshot when creating records", async () => {
+    const db = createRecordsDatabase({
+      userId: "caregiver-1",
+      role: "caregiver",
+    });
+
+    const result = await createBottleFeeding(
+      "caregiver-1",
+      {
+        childId: "child-1",
+        amountMl: 90,
+        eventTime: new Date("2026-06-25T01:00:00.000Z"),
+      },
+      db,
+    );
+
+    expect(result).toEqual({ ok: true, recordId: "feeding-1" });
+    expect(db.feedingRecord.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        creatorDisplayName: "Caregiver",
+      }),
+    });
+  });
+
+  test("prevents normal record creation for archived children", async () => {
+    const db = createRecordsDatabase({
+      childArchivedAt: new Date("2026-06-25T00:00:00.000Z"),
+    });
+
+    await expect(
+      createBottleFeeding(
+        "user-1",
+        {
+          childId: "child-1",
+          amountMl: 90,
+          eventTime: new Date("2026-06-25T01:00:00.000Z"),
+        },
+        db,
+      ),
+    ).resolves.toEqual({
+      ok: false,
+      error: "Child is not accessible.",
+    });
+    expect(db.feedingRecord.create).not.toHaveBeenCalled();
+  });
+
   test("prevents a second active breastfeeding record for one child", async () => {
     const db = createRecordsDatabase();
 
@@ -302,6 +433,30 @@ describe("record creation", () => {
     );
 
     expect(result).toEqual({ ok: true, recordId: "diaper-1" });
+  });
+
+  test("creates a dirty diaper record with stool details", async () => {
+    const db = createRecordsDatabase();
+
+    const result = await createDiaper(
+      "user-1",
+      {
+        childId: "child-1",
+        type: "dirty",
+        stoolColor: "yellow",
+        stoolConsistency: "soft",
+        time: new Date("2026-06-25T01:00:00.000Z"),
+      },
+      db,
+    );
+
+    expect(result).toEqual({ ok: true, recordId: "diaper-1" });
+    expect(db.diaperRecord.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        stoolColor: "yellow",
+        stoolConsistency: "soft",
+      }),
+    });
   });
 
   test("prevents a second active sleep record for one child", async () => {

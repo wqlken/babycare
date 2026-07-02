@@ -22,6 +22,11 @@ export default async function NewFeedingPage({
   }
 
   return (
-    <FeedingForm childId={child.id} childName={child.name} error={query?.error} />
+    <FeedingForm
+      childId={child.id}
+      childName={child.name}
+      error={query?.error}
+      milkUnit={user.preference?.milkUnit === "oz" ? "oz" : "ml"}
+    />
   );
 }

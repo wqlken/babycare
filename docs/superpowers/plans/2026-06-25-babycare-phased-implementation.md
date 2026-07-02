@@ -12,9 +12,9 @@
 
 - Phase V1 is implemented on `main`.
 - V1 implementation also includes follow-up management polish that was added after the original task list: baby profile settings, account profile/password settings, family member removal with last-owner protection, owner record deletion from the timeline, and bottle feeding edit controls.
-- Phase V1.1 is implemented on `feat/v1-safe-record-editing`.
-- Phase V1.2 remains incomplete.
-- Latest verified commands on `feat/v1-safe-record-editing`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
+- Phase V1.1 is implemented on `main`.
+- Phase V1.2 is implemented on `feat/v1.2-household-polish`.
+- Latest verified commands on `feat/v1.2-household-polish`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
 
 ---
 
@@ -846,11 +846,11 @@ git commit -m "docs: add Docker backup workflow"
 - Test: `tests/integration/records.test.ts`
 - Test: `tests/unit/units.test.ts`
 
-- [ ] Add `bottleContent`, `stoolColor`, and `stoolConsistency`.
-- [ ] Add `milkUnit` preference UI.
-- [ ] Convert oz input into stored ml.
-- [ ] Keep optional fields collapsed in quick forms.
-- [ ] Run unit and integration tests.
+- [x] Add `bottleContent`, `stoolColor`, and `stoolConsistency`.
+- [x] Add `milkUnit` preference UI.
+- [x] Convert oz input into stored ml.
+- [x] Keep optional fields collapsed in quick forms.
+- [x] Run unit and integration tests.
 - [ ] Commit with `feat: add record details`.
 
 ### Task 15: Child Archiving and Creator Snapshots
@@ -862,11 +862,11 @@ git commit -m "docs: add Docker backup workflow"
 - Test: `tests/integration/children.test.ts`
 - Test: `tests/integration/records.test.ts`
 
-- [ ] Add `archivedAt` behavior for children.
-- [ ] Hide archived children from default selection.
-- [ ] Block normal new records for archived children.
-- [ ] Store creator display name snapshot on record creation.
-- [ ] Run tests.
+- [x] Add `archivedAt` behavior for children.
+- [x] Hide archived children from default selection.
+- [x] Block normal new records for archived children.
+- [x] Store creator display name snapshot on record creation.
+- [x] Run tests.
 - [ ] Commit with `feat: add household data polish`.
 
 ### Task 16: Final Verification
@@ -874,13 +874,13 @@ git commit -m "docs: add Docker backup workflow"
 **Files:**
 - Modify: `README.md`
 
-- [ ] Run all tests:
+- [x] Run all tests:
 
 ```powershell
 npm test
 ```
 
-- [ ] Run production build:
+- [x] Run production build:
 
 ```powershell
 npm run build
@@ -895,8 +895,10 @@ powershell -File scripts/backup-db.ps1
 docker compose down
 ```
 
-- [ ] Update README with final development, test, Docker, backup, and deployment commands.
+- [x] Update README with final development, test, Docker, backup, and deployment commands.
 - [ ] Commit with `docs: finalize project instructions`.
+
+Docker smoke test note: not run in the local worktree because Docker CLI is not installed in this environment (`docker` command not found).
 
 ---
 

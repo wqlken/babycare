@@ -2,7 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/guards";
-import { updatePassword, updateProfile } from "@/lib/auth/service";
+import {
+  updatePassword,
+  updatePreferences,
+  updateProfile,
+} from "@/lib/auth/service";
 
 export async function updateProfileAction(formData: FormData) {
   const user = await requireUser();
@@ -30,4 +34,17 @@ export async function updatePasswordAction(formData: FormData) {
   }
 
   redirect("/settings/account?saved=password");
+}
+
+export async function updatePreferencesAction(formData: FormData) {
+  const user = await requireUser();
+  const result = await updatePreferences(user.id, {
+    milkUnit: String(formData.get("milkUnit") ?? "ml"),
+  });
+
+  if (!result.ok) {
+    redirect(`/settings/account?error=${encodeURIComponent(result.error)}`);
+  }
+
+  redirect("/settings/account?saved=preferences");
 }

@@ -8,6 +8,7 @@ import {
   stopBreastfeeding,
   updateBottleFeeding,
 } from "@/lib/records/service";
+import { parseMilkVolumeToMl, type MilkUnit } from "@/lib/units";
 
 function redirectWithError(childId: string, target: string, error: string) {
   redirect(
@@ -18,10 +19,23 @@ function redirectWithError(childId: string, target: string, error: string) {
 export async function createBottleFeedingAction(formData: FormData) {
   const user = await requireUser();
   const childId = String(formData.get("childId") ?? "");
-  const amountMl = Number(formData.get("amountMl"));
+  const milkUnit = String(formData.get("milkUnit") ?? "ml") as MilkUnit;
+  let amountMl = 0;
+
+  try {
+    amountMl = parseMilkVolumeToMl(String(formData.get("amount") ?? ""), milkUnit);
+  } catch (error) {
+    redirectWithError(
+      childId,
+      "new",
+      error instanceof Error ? error.message : "Milk volume is invalid.",
+    );
+  }
+
   const result = await createBottleFeeding(user.id, {
     childId,
     amountMl,
+    bottleContent: String(formData.get("bottleContent") ?? "unknown"),
     eventTime: new Date(),
     notes: String(formData.get("notes") ?? ""),
   });
@@ -75,10 +89,24 @@ export async function updateBottleFeedingAction(formData: FormData) {
   const childId = String(formData.get("childId") ?? "");
   const recordId = String(formData.get("recordId") ?? "");
   const updatedAt = new Date(String(formData.get("updatedAt") ?? ""));
+  const milkUnit = String(formData.get("milkUnit") ?? "ml") as MilkUnit;
+  let amountMl = 0;
+
+  try {
+    amountMl = parseMilkVolumeToMl(String(formData.get("amount") ?? ""), milkUnit);
+  } catch (error) {
+    redirect(
+      `/children/${childId}/timeline?error=${encodeURIComponent(
+        error instanceof Error ? error.message : "Milk volume is invalid.",
+      )}`,
+    );
+  }
+
   const result = await updateBottleFeeding(user.id, {
     childId,
     recordId,
-    amountMl: Number(formData.get("amountMl")),
+    amountMl,
+    bottleContent: String(formData.get("bottleContent") ?? "unknown"),
     updatedAt,
     notes: String(formData.get("notes") ?? ""),
   });
