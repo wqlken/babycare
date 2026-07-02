@@ -1,8 +1,10 @@
 import { describe, expect, test, vi } from "vitest";
 import {
+  archiveChild,
   createChild,
   getChildDashboardTarget,
   setCurrentChild,
+  unarchiveChild,
   updateChild,
   type ChildrenDatabase,
 } from "@/lib/children/service";
@@ -29,7 +31,12 @@ function createChildrenDatabase(role: "owner" | "caregiver" = "owner"): Children
       })),
     },
     child: {
-      findMany: vi.fn(async () => children),
+      findMany: vi.fn(async ({ where }) =>
+        children.filter(
+          (child) =>
+            child.familyId === where.familyId && child.archivedAt === where.archivedAt,
+        ),
+      ),
       create: vi.fn(async ({ data }) => {
         const child = {
           id: `child-${children.length + 1}`,
@@ -49,7 +56,7 @@ function createChildrenDatabase(role: "owner" | "caregiver" = "owner"): Children
             (child) =>
               child.id === where.id &&
               child.familyId === where.familyId &&
-              child.archivedAt === where.archivedAt,
+              (!("archivedAt" in where) || child.archivedAt === where.archivedAt),
           ) ?? null
         );
       }),
@@ -60,6 +67,8 @@ function createChildrenDatabase(role: "owner" | "caregiver" = "owner"): Children
         child.birthday = data.birthday ?? child.birthday;
         child.gender = data.gender ?? child.gender;
         child.notes = data.notes ?? child.notes;
+        child.archivedAt =
+          "archivedAt" in data ? data.archivedAt ?? null : child.archivedAt;
         return child;
       }),
     },
@@ -214,6 +223,45 @@ describe("child onboarding", () => {
     await expect(setCurrentChild("user-1", "other-child", db)).resolves.toEqual({
       ok: false,
       error: "Child is not accessible.",
+    });
+  });
+
+  test("owners can archive and restore a child", async () => {
+    const db = createChildrenDatabase();
+
+    await createChild(
+      "owner-1",
+      {
+        name: "宝宝",
+        birthday: "2026-01-01",
+      },
+      db,
+    );
+
+    await expect(archiveChild("owner-1", "child-1", db)).resolves.toEqual({
+      ok: true,
+      childId: "child-1",
+    });
+    await expect(getChildDashboardTarget("owner-1", db)).resolves.toEqual({
+      kind: "needs-child",
+      href: "/children",
+    });
+    await expect(unarchiveChild("owner-1", "child-1", db)).resolves.toEqual({
+      ok: true,
+      childId: "child-1",
+    });
+    await expect(getChildDashboardTarget("owner-1", db)).resolves.toEqual({
+      kind: "child",
+      childId: "child-1",
+    });
+  });
+
+  test("caregivers cannot archive children", async () => {
+    const db = createChildrenDatabase("caregiver");
+
+    await expect(archiveChild("caregiver-1", "child-1", db)).resolves.toEqual({
+      ok: false,
+      error: "Only owners can manage children.",
     });
   });
 });

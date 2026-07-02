@@ -46,7 +46,7 @@ export type ChildrenDatabase = {
       where: {
         id: string;
         familyId: string;
-        archivedAt: null;
+        archivedAt?: null | Date;
       };
     }) => Promise<ChildRecord | null>;
     update?: (args: {
@@ -56,6 +56,7 @@ export type ChildrenDatabase = {
         birthday?: Date;
         gender?: string | null;
         notes?: string | null;
+        archivedAt?: Date | null;
       };
     }) => Promise<ChildRecord>;
   };
@@ -153,6 +154,25 @@ export async function getAccessibleChild(
 
   const children = await listAccessibleChildren(userId, db);
   return children.find((child) => child.id === childId) ?? null;
+}
+
+export async function getManageableChild(
+  userId: string,
+  childId: string,
+  db: ChildrenDatabase = prisma,
+) {
+  const membership = await getActiveFamily(userId, db);
+
+  if (!membership || !db.child.findFirst) {
+    return null;
+  }
+
+  return db.child.findFirst({
+    where: {
+      id: childId,
+      familyId: membership.familyId,
+    },
+  });
 }
 
 export async function getChildDashboardTarget(
@@ -282,6 +302,75 @@ export async function updateChild(
   });
 
   return { ok: true, childId: child.id };
+}
+
+async function findChildForOwnerMutation(
+  userId: string,
+  childId: string,
+  db: ChildrenDatabase,
+) {
+  const membership = await getActiveFamily(userId, db);
+
+  if (!membership) {
+    return { ok: false as const, error: "Active family membership is required." };
+  }
+
+  if (membership.role !== "owner") {
+    return { ok: false as const, error: "Only owners can manage children." };
+  }
+
+  if (!db.child.findFirst || !db.child.update) {
+    return { ok: false as const, error: "Child update is not available." };
+  }
+
+  const child = await db.child.findFirst({
+    where: {
+      id: childId,
+      familyId: membership.familyId,
+    },
+  });
+
+  if (!child) {
+    return { ok: false as const, error: "Child is not accessible." };
+  }
+
+  return { ok: true as const, child };
+}
+
+export async function archiveChild(
+  userId: string,
+  childId: string,
+  db: ChildrenDatabase = prisma,
+): Promise<ChildMutationResult> {
+  const result = await findChildForOwnerMutation(userId, childId, db);
+  if (!result.ok) return result;
+
+  await db.child.update?.({
+    where: { id: result.child.id },
+    data: {
+      archivedAt: new Date(),
+    },
+  });
+
+  return { ok: true, childId: result.child.id };
+}
+
+export async function unarchiveChild(
+  userId: string,
+  childId: string,
+  db: ChildrenDatabase = prisma,
+): Promise<ChildMutationResult> {
+  const result = await findChildForOwnerMutation(userId, childId, db);
+  if (!result.ok) return result;
+
+  await db.child.update?.({
+    where: { id: result.child.id },
+    data: {
+      archivedAt: null,
+    },
+  });
+
+  return { ok: true, childId: result.child.id };
 }
 
 export async function setCurrentChild(
