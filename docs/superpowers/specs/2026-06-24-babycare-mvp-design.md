@@ -10,13 +10,13 @@ The full design remains the target product direction, but implementation should 
 
 ## Current Implementation Status
 
-Status as of 2026-07-01:
+Status as of 2026-07-02:
 
 - V1 core family logging is implemented on `main`.
 - Implemented V1 scope includes bootstrap registration, invite-bound registration, login/logout, first-child onboarding, current child preference, baby profile editing, account settings, family invitations, caregiver removal with last-owner protection, feeding/diaper/sleep logging, breastfeeding and sleep start/stop timers, dashboard summaries, recent records, timeline display, owner record deletion, bottle feeding edit controls, Docker Compose, and manual backup/restore scripts.
-- V1.1 soft deletion, edited metadata, optimistic bottle editing, owner CSV export, family administration, seven-day summary, PWA metadata, and network-unavailable handling are implemented on `feat/v1-safe-record-editing`.
-- V1.2 remains a planned follow-up phase.
-- Latest verified commands on `feat/v1-safe-record-editing`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
+- V1.1 soft deletion, edited metadata, optimistic bottle editing, owner CSV export, family administration, seven-day summary, PWA metadata, and network-unavailable handling are implemented on `main`.
+- V1.2 bottle content, stool details, milk unit preference, ounce input conversion, child archiving, archived-child record blocking, and creator display name snapshot coverage are implemented on `main` and tagged as `v1.2.0`.
+- Latest verified commands on `main`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`. Docker smoke testing was not run locally because Docker CLI is not installed in this environment.
 
 ### V1: Core Family Logging
 
