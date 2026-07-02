@@ -41,6 +41,61 @@ docker compose up -d --build
 
 The app container runs `npx prisma migrate deploy` before starting Next.js.
 
+### VPS With Existing PostgreSQL And Caddy
+
+When deploying behind an existing Caddy reverse proxy and PostgreSQL container,
+connect Babycare to the same Docker network as Caddy and PostgreSQL. The app
+expects `DATABASE_URL`, not separate `DB_HOST`/`DB_USER` variables.
+
+```yaml
+services:
+  babycare:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: babycare
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://babycare_user:your_strong_password@sub2api-postgres:5432/babycare
+      AUTH_SECRET: replace-with-openssl-rand-base64-32
+      APP_URL: https://babycare.example.com
+      FAMILY_TIMEZONE: Asia/Shanghai
+      NODE_ENV: production
+    networks:
+      - global-gateway
+    command: sh -c "npx prisma migrate deploy && npm run start"
+
+networks:
+  global-gateway:
+    external: true
+```
+
+Caddy can then proxy to the Docker service name:
+
+```caddyfile
+babycare.example.com {
+  reverse_proxy babycare:3000
+}
+```
+
+If `npx prisma migrate deploy` fails with `permission denied for schema public`,
+grant the application database user ownership or schema privileges from a
+PostgreSQL admin session:
+
+```sql
+ALTER DATABASE babycare OWNER TO babycare_user;
+ALTER SCHEMA public OWNER TO babycare_user;
+GRANT CONNECT ON DATABASE babycare TO babycare_user;
+GRANT USAGE, CREATE ON SCHEMA public TO babycare_user;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO babycare_user;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO babycare_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO babycare_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO babycare_user;
+```
+
+If Caddy returns `502` with `lookup babycare ... no such host`, confirm that
+the `babycare` and `caddy` containers are attached to the same Docker network.
+
 ## Development
 
 ```powershell
