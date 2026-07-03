@@ -13,9 +13,10 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/client": "latest",
     "@prisma/adapter-pg": "latest",
+    "@prisma/client": "latest",
     "bcryptjs": "latest",
+    "lucide-react": "^1.23.0",
     "next": "latest",
     "pg": "latest",
     "react": "latest",

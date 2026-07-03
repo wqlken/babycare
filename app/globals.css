@@ -2,17 +2,80 @@
 
 :root {
   color-scheme: light;
-  --background: #f7f3ee;
-  --foreground: #2f3432;
-  --surface: #fffdf9;
-  --surface-muted: #efe7dd;
-  --border-soft: #ded4c8;
-  --primary: #6f8f86;
-  --primary-strong: #53756d;
-  --primary-soft: #dce8e3;
-  --accent: #b88b7d;
-  --accent-soft: #f0ddd6;
-  --rest-soft: #dddceb;
+
+  --color-cream-50: #fffdf9;
+  --color-cream-100: #f7f3ee;
+  --color-cream-200: #efe7dd;
+  --color-cream-300: #ded4c8;
+  --color-ink-900: #2f3432;
+  --color-ink-700: #4a514e;
+  --color-ink-600: #5d6661;
+  --color-ink-500: #766e66;
+  --color-feeding-500: #6f8f86;
+  --color-feeding-600: #53756d;
+  --color-feeding-100: #dce8e3;
+  --color-diaper-500: #b88b7d;
+  --color-diaper-600: #986f63;
+  --color-diaper-100: #f0ddd6;
+  --color-sleep-500: #8584a6;
+  --color-sleep-600: #737196;
+  --color-sleep-100: #dddceb;
+  --color-danger-600: #b42318;
+  --space-safe-bottom: 6rem;
+  --radius-card: 0.5rem;
+  --radius-control: 0.5rem;
+  --shadow-card: 0 1px 2px rgb(47 52 50 / 0.08);
+  --duration-fast: 150ms;
+
+  --background: var(--color-cream-100);
+  --foreground: var(--color-ink-900);
+  --surface: var(--color-cream-50);
+  --surface-muted: var(--color-cream-200);
+  --border-soft: var(--color-cream-300);
+  --text-muted: var(--color-ink-500);
+  --focus-ring: var(--color-feeding-600);
+  --accent-feeding: var(--color-feeding-500);
+  --accent-feeding-strong: var(--color-feeding-600);
+  --accent-feeding-soft: var(--color-feeding-100);
+  --accent-diaper: var(--color-diaper-500);
+  --accent-diaper-strong: var(--color-diaper-600);
+  --accent-diaper-soft: var(--color-diaper-100);
+  --accent-sleep: var(--color-sleep-500);
+  --accent-sleep-strong: var(--color-sleep-600);
+  --accent-sleep-soft: var(--color-sleep-100);
+  --action-neutral: #8d877e;
+  --action-neutral-strong: #6f6961;
+
+  /* Backward-compatible aliases while components migrate to semantic tokens. */
+  --primary: var(--accent-feeding);
+  --primary-strong: var(--accent-feeding-strong);
+  --primary-soft: var(--accent-feeding-soft);
+  --accent: var(--accent-diaper);
+  --accent-soft: var(--accent-diaper-soft);
+  --rest-soft: var(--accent-sleep-soft);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #050606;
+  --foreground: #e7ebe7;
+  --surface: #111312;
+  --surface-muted: #1b1f1d;
+  --border-soft: #2c3430;
+  --text-muted: #aab3ad;
+  --focus-ring: #9fc5b7;
+  --accent-feeding: #8fb5a9;
+  --accent-feeding-strong: #a6d1c3;
+  --accent-feeding-soft: #18231f;
+  --accent-diaper: #c59a8c;
+  --accent-diaper-strong: #dfb4a5;
+  --accent-diaper-soft: #291d1a;
+  --accent-sleep: #aaa8d0;
+  --accent-sleep-strong: #c2c0ea;
+  --accent-sleep-soft: #202034;
+  --action-neutral: #a9a197;
+  --action-neutral-strong: #cbc2b5;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.32);
 }
 
 * {
@@ -53,4 +116,68 @@ a {
 button:active,
 a:active {
   transform: scale(0.98);
+}
+
+.bc-focus-ring {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.bc-focus-ring:focus-visible {
+  outline-color: var(--focus-ring);
+}
+
+.bc-card {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.bc-field {
+  display: block;
+}
+
+.bc-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.bc-input {
+  margin-top: 0.5rem;
+  min-height: 3rem;
+  width: 100%;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--foreground);
+  padding: 0.75rem;
+}
+
+.bc-button,
+.bc-button-secondary,
+.bc-touch-link {
+  min-height: 3rem;
+  border-radius: var(--radius-control);
+  font-weight: 600;
+}
+
+.bc-button-secondary,
+.bc-touch-link {
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  color: var(--foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
