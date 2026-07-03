@@ -25,6 +25,7 @@ yarn-error.log*
 .superpowers/
 .firecrawl/
 .worktrees/
+.codex/
 
 # OS/editor
 .DS_Store
