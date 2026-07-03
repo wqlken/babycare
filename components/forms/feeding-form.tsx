@@ -3,6 +3,7 @@ import {
   startBreastfeedingAction,
 } from "@/app/actions/feedings";
 import { formatDateTimeLocalInput } from "@/lib/time";
+import { Milk } from "lucide-react";
 import Link from "next/link";
 
 type FeedingFormProps = {
@@ -31,12 +32,14 @@ export function FeedingForm({
       <form action={createBottleFeedingAction} className="space-y-4">
         <input name="childId" type="hidden" value={childId} />
         <input name="milkUnit" type="hidden" value={milkUnit} />
-        <h1 className="text-2xl font-semibold text-[#37413d]">记录瓶喂</h1>
-        <p className="text-sm text-[#7b7168]">当前宝宝：{childName}</p>
+        <h1 className="text-2xl font-semibold text-[var(--foreground)]">
+          记录瓶喂
+        </h1>
+        <p className="text-sm text-[var(--text-muted)]">当前宝宝：{childName}</p>
         <label className="block">
-          <span className="text-sm font-medium text-[#5d6661]">记录时间</span>
+          <span className="bc-label">记录时间</span>
           <input
-            className="mt-2 min-h-12 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-3"
+            className="bc-input bc-focus-ring"
             defaultValue={defaultTime}
             name="eventTime"
             required
@@ -44,11 +47,9 @@ export function FeedingForm({
           />
         </label>
         <label className="block">
-          <span className="text-sm font-medium text-[#5d6661]">
-            奶量 {milkUnit}
-          </span>
+          <span className="bc-label">奶量 {milkUnit}</span>
           <input
-            className="mt-2 min-h-12 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-3 text-lg"
+            className="bc-input bc-focus-ring text-lg"
             inputMode="decimal"
             min={1}
             name="amount"
@@ -58,9 +59,9 @@ export function FeedingForm({
           />
         </label>
         <label className="block">
-          <span className="text-sm font-medium text-[#5d6661]">内容</span>
+          <span className="bc-label">内容</span>
           <select
-            className="mt-2 min-h-12 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-3"
+            className="bc-input bc-focus-ring"
             defaultValue="unknown"
             name="bottleContent"
           >
@@ -72,18 +73,19 @@ export function FeedingForm({
           </select>
         </label>
         <label className="block">
-          <span className="text-sm font-medium text-[#5d6661]">备注</span>
+          <span className="bc-label">备注</span>
           <textarea
-            className="mt-2 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-3"
+            className="bc-input bc-focus-ring"
             name="notes"
             rows={3}
           />
         </label>
-        <button className="min-h-14 w-full rounded-lg bg-[var(--primary-strong)] px-4 py-4 text-lg font-semibold text-white shadow-sm">
+        <button className="bc-focus-ring flex min-h-14 w-full items-center justify-center gap-2 rounded-lg bg-[var(--accent-feeding-strong)] px-4 py-4 text-lg font-semibold text-white shadow-sm">
+          <Milk aria-hidden="true" size={24} />
           保存瓶喂
         </button>
         <Link
-          className="flex min-h-12 items-center justify-center rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 font-medium text-[#5d6661]"
+          className="bc-touch-link bc-focus-ring flex items-center justify-center px-4 py-3"
           href="/"
         >
           返回首页
@@ -91,12 +93,14 @@ export function FeedingForm({
       </form>
       <form action={startBreastfeedingAction} className="space-y-4">
         <input name="childId" type="hidden" value={childId} />
-        <h2 className="text-xl font-semibold text-[#37413d]">开始母乳计时</h2>
-        <p className="text-sm text-[#7b7168]">当前宝宝：{childName}</p>
+        <h2 className="text-xl font-semibold text-[var(--foreground)]">
+          开始母乳计时
+        </h2>
+        <p className="text-sm text-[var(--text-muted)]">当前宝宝：{childName}</p>
         <label className="block">
-          <span className="text-sm font-medium text-[#5d6661]">开始时间</span>
+          <span className="bc-label">开始时间</span>
           <input
-            className="mt-2 min-h-12 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-3"
+            className="bc-input bc-focus-ring"
             defaultValue={defaultTime}
             name="startTime"
             required
@@ -104,7 +108,7 @@ export function FeedingForm({
           />
         </label>
         <select
-          className="min-h-12 w-full rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-3"
+          className="bc-input bc-focus-ring"
           name="breastSide"
           defaultValue="unknown"
         >
@@ -113,11 +117,12 @@ export function FeedingForm({
           <option value="right">右侧</option>
           <option value="both">两侧</option>
         </select>
-        <button className="min-h-14 w-full rounded-lg bg-[var(--primary)] px-4 py-4 text-lg font-semibold text-white shadow-sm">
+        <button className="bc-focus-ring flex min-h-14 w-full items-center justify-center gap-2 rounded-lg bg-[var(--accent-feeding)] px-4 py-4 text-lg font-semibold text-white shadow-sm">
+          <Milk aria-hidden="true" size={24} />
           开始母乳
         </button>
         <Link
-          className="flex min-h-12 items-center justify-center rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 font-medium text-[#5d6661]"
+          className="bc-touch-link bc-focus-ring flex items-center justify-center px-4 py-3"
           href="/"
         >
           返回首页
