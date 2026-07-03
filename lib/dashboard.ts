@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { buildDayRhythm } from "@/lib/day-rhythm";
 import { buildSevenDaySummary, summarizeDay } from "@/lib/summaries";
 import { addDays, getLocalDayRange, toLocalDateString } from "@/lib/time";
 import { buildTimelineItems } from "@/lib/timeline";
@@ -79,6 +80,13 @@ export async function getDashboardData(userId: string, childId: string) {
       null,
     activeSleep: sleeps.find((sleep) => !sleep.endTime) ?? null,
     timelineItems: buildTimelineItems({ feedings, diapers, sleeps }).slice(0, 8),
+    dayRhythm: buildDayRhythm({
+      date: today,
+      timezone: "Asia/Shanghai",
+      feedings,
+      diapers,
+      sleeps,
+    }),
     sevenDaySummary: buildSevenDaySummary({
       endDate: today,
       timezone: "Asia/Shanghai",

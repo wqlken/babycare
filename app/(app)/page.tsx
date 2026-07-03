@@ -1,6 +1,7 @@
 import { requireUser } from "@/lib/auth/guards";
 import { ActiveTimers } from "@/components/dashboard/active-timers";
 import { BottleInsights } from "@/components/dashboard/bottle-insights";
+import { DayRhythmChart } from "@/components/dashboard/day-rhythm-chart";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { RecentEvents } from "@/components/dashboard/recent-events";
 import { SevenDaySummary } from "@/components/dashboard/seven-day-summary";
@@ -48,6 +49,7 @@ export default async function Home() {
             lastDiaperAt={dashboard.lastDiaperAt}
             lastSleepAt={dashboard.lastSleepAt}
           />
+          <DayRhythmChart rhythm={dashboard.dayRhythm} />
           <BottleInsights
             today={dashboard.summary}
             summaries={dashboard.sevenDaySummary}
