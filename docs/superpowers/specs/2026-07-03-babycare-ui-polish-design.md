@@ -102,6 +102,25 @@ Touch target rules:
 Desktop can keep the current header-first navigation, with optional bottom bar
 hidden at wider breakpoints.
 
+## Icons
+
+Use `lucide-react` as the single icon library for the UI polish pass.
+
+Icon rules:
+
+- Use Lucide icons for navigation, quick actions, record categories, settings,
+  and theme controls.
+- Keep icons decorative only when adjacent text already names the action.
+- Add `aria-label` or screen-reader text for icon-only controls.
+- Use one stroke style and consistent sizing across the same hierarchy.
+- Default sizes:
+  - 20px for compact header and table actions.
+  - 24px for bottom navigation and form action icons.
+  - 28px for primary record action icons when paired with large labels.
+- Do not use emoji as structural UI icons.
+- Do not mix Lucide with another icon set unless a required symbol is genuinely
+  missing.
+
 ## Forms
 
 Form priority is speed and certainty.
@@ -211,6 +230,8 @@ Likely files:
 - `components/dashboard/day-rhythm-chart.tsx`: new compact daily rhythm module.
 - `lib/dashboard.ts` or a small formatter helper if the chart needs normalized
   timeline data.
+- `package.json` and `package-lock.json`: add `lucide-react` for consistent
+  vector icons if it is not already present.
 
 Avoid broad refactors outside the shell, dashboard, form, and token surface.
 
