@@ -32,24 +32,32 @@ export function ActiveTimers({
   return (
     <div className="space-y-3">
       {activeBreastfeeding ? (
-        <div className="rounded-lg border border-[var(--border-soft)] bg-[var(--primary-soft)] p-4">
-          <p className="text-sm font-medium text-[#425b55]">母乳进行中</p>
-          <p className="mt-1 text-[#37413d]">已开始 {since(activeBreastfeeding.startTime)}</p>
+        <div className="rounded-lg border border-[var(--border-soft)] bg-[var(--accent-feeding-soft)] p-4">
+          <p className="text-sm font-medium text-[var(--accent-feeding-strong)]">
+            母乳进行中
+          </p>
+          <p className="mt-1 text-[var(--foreground)]">
+            已开始 {since(activeBreastfeeding.startTime)}
+          </p>
           <form action={stopBreastfeedingAction} className="mt-3">
             <input name="childId" type="hidden" value={childId} />
-            <button className="min-h-12 rounded-lg bg-[var(--primary-strong)] px-4 py-3 text-sm font-medium text-white">
+            <button className="bc-focus-ring min-h-12 rounded-lg bg-[var(--accent-feeding-strong)] px-4 py-3 text-sm font-medium text-white">
               结束母乳
             </button>
           </form>
         </div>
       ) : null}
       {activeSleep ? (
-        <div className="rounded-lg border border-[var(--border-soft)] bg-[var(--rest-soft)] p-4">
-          <p className="text-sm font-medium text-[#585879]">睡眠进行中</p>
-          <p className="mt-1 text-[#3f4058]">已开始 {since(activeSleep.startTime)}</p>
+        <div className="rounded-lg border border-[var(--border-soft)] bg-[var(--accent-sleep-soft)] p-4">
+          <p className="text-sm font-medium text-[var(--accent-sleep-strong)]">
+            睡眠进行中
+          </p>
+          <p className="mt-1 text-[var(--foreground)]">
+            已开始 {since(activeSleep.startTime)}
+          </p>
           <form action={stopSleepAction} className="mt-3">
             <input name="childId" type="hidden" value={childId} />
-            <button className="min-h-12 rounded-lg bg-[#737196] px-4 py-3 text-sm font-medium text-white">
+            <button className="bc-focus-ring min-h-12 rounded-lg bg-[var(--accent-sleep-strong)] px-4 py-3 text-sm font-medium text-white">
               结束睡眠
             </button>
           </form>

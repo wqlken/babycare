@@ -38,11 +38,11 @@ export function SummaryCards({
     <div className="grid grid-cols-2 gap-3">
       {cards.map((card) => (
         <div
-          className="rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] p-4 shadow-sm"
+          className="bc-card p-4"
           key={card.label}
         >
-          <p className="text-sm text-[#7b7168]">{card.label}</p>
-          <p className="mt-2 text-2xl font-semibold text-[#37413d]">
+          <p className="text-sm text-[var(--text-muted)]">{card.label}</p>
+          <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">
             {card.value}
           </p>
         </div>
