@@ -266,6 +266,17 @@ desktop screenshots before declaring the UI pass complete.
 - No return to collapsed optional sections for feeding and diaper forms.
 - No relative time quick buttons for record time.
 
+## Implementation Status
+
+Implemented on `main` after the post-v1.2.1 design pass:
+
+- Tokenized light and dark themes.
+- Lucide icon system.
+- Mobile bottom navigation and record shortcuts.
+- Tokenized high-frequency record forms.
+- Conditional stool details for diaper records.
+- Daily rhythm dashboard visualization.
+
 ## Approval Notes
 
 This design is intended as a post-v1.2.1 UI polish pass. It should be implemented

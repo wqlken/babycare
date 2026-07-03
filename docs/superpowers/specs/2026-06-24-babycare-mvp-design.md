@@ -17,6 +17,7 @@ Status as of 2026-07-02:
 - V1.1 soft deletion, edited metadata, optimistic bottle editing, owner CSV export, family administration, seven-day summary, PWA metadata, and network-unavailable handling are implemented on `main`.
 - V1.2 bottle content, stool details, milk unit preference, ounce input conversion, child archiving, archived-child record blocking, and creator display name snapshot coverage are implemented on `main` and tagged as `v1.2.0`.
 - Post-v1.2 UI polish is implemented on `main`: the dashboard and high-frequency forms use a softer low-saturation palette, larger touch targets, and milk volume progress/trend visuals.
+- Post-v1.2 UI polish now includes tokenized light/dark themes, Lucide icons, mobile bottom navigation, conditional diaper detail display, and a compact daily rhythm visualization.
 - Post-v1.2 record-entry polish is implemented in the current follow-up branch: feeding, diaper, and sleep forms show editable local record/start times, high-frequency details stay visible instead of collapsed, and the app shell plus record forms provide a direct return-home shortcut.
 - Latest verified commands on `main`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`. Docker smoke testing was not run locally because Docker CLI is not installed in this environment.
 
