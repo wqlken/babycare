@@ -5,6 +5,7 @@ import nextTypescript from "eslint-config-next/typescript";
 const eslintConfig = [
   globalIgnores([
     ".next/**",
+    ".codex/**",
     ".worktrees/**",
     "build/**",
     "dist/**",

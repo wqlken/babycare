@@ -5,6 +5,39 @@ import { addDays, getLocalDayRange, toLocalDateString } from "@/lib/time";
 import { buildTimelineItems } from "@/lib/timeline";
 import { getAccessibleChild } from "@/lib/children/service";
 
+type DashboardFeeding = {
+  id: string;
+  type: "breast" | "bottle";
+  breastSide: "left" | "right" | "both" | "unknown" | null;
+  startTime: Date;
+  endTime: Date | null;
+  amountMl: number | null;
+  creatorDisplayName: string;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type DashboardDiaper = {
+  id: string;
+  type: "wet" | "dirty" | "both";
+  time: Date;
+  creatorDisplayName: string;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type DashboardSleep = {
+  id: string;
+  startTime: Date;
+  endTime: Date | null;
+  creatorDisplayName: string;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export async function getDashboardData(userId: string, childId: string) {
   const child = await getAccessibleChild(userId, childId);
 
@@ -17,7 +50,11 @@ export async function getDashboardData(userId: string, childId: string) {
   const rangeStart = getLocalDayRange(startDate, "Asia/Shanghai").start;
   const rangeEnd = getLocalDayRange(addDays(today, 1), "Asia/Shanghai").start;
 
-  const [feedings, diapers, sleeps] = await Promise.all([
+  const [feedings, diapers, sleeps]: [
+    DashboardFeeding[],
+    DashboardDiaper[],
+    DashboardSleep[],
+  ] = await Promise.all([
     prisma.feedingRecord.findMany({
       where: {
         childId,

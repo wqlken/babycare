@@ -13,6 +13,14 @@ type Membership = {
 };
 
 type FamilyRole = "owner" | "caregiver";
+export type FamilyMemberListItem = Membership & {
+  id: string;
+  userId: string;
+  user: {
+    displayName: string;
+    email: string;
+  };
+};
 
 type InviteRecord = {
   id: string;
@@ -273,7 +281,9 @@ export async function validateInviteForEmail(
   };
 }
 
-export async function listFamilyMembers(userId: string) {
+export async function listFamilyMembers(
+  userId: string,
+): Promise<FamilyMemberListItem[]> {
   const membership = await prisma.familyMember.findFirst({
     where: {
       userId,
