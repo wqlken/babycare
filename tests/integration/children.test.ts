@@ -137,7 +137,7 @@ describe("child onboarding", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "Only owners can manage children.",
+      error: "只有家庭管理员可以管理宝宝资料。",
     });
   });
 
@@ -183,7 +183,7 @@ describe("child onboarding", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "Only owners can manage children.",
+      error: "只有家庭管理员可以管理宝宝资料。",
     });
   });
 
@@ -222,7 +222,7 @@ describe("child onboarding", () => {
 
     await expect(setCurrentChild("user-1", "other-child", db)).resolves.toEqual({
       ok: false,
-      error: "Child is not accessible.",
+      error: "无法访问该宝宝资料。",
     });
   });
 
@@ -261,7 +261,7 @@ describe("child onboarding", () => {
 
     await expect(archiveChild("caregiver-1", "child-1", db)).resolves.toEqual({
       ok: false,
-      error: "Only owners can manage children.",
+      error: "只有家庭管理员可以管理宝宝资料。",
     });
   });
 });

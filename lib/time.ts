@@ -98,7 +98,7 @@ export function parseRecordDateTimeInput(
     /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/,
   );
   if (!match) {
-    throw new Error("Record time is invalid.");
+    throw new Error("记录时间无效。");
   }
 
   const [, yearText, monthText, dayText, hourText, minuteText] = match;
@@ -116,16 +116,16 @@ export function parseRecordDateTimeInput(
     hour > 23 ||
     minute > 59
   ) {
-    throw new Error("Record time is invalid.");
+    throw new Error("记录时间无效。");
   }
 
   const parsed = zonedLocalDateTimeToUtc(value, timezone);
   if (Number.isNaN(parsed.getTime())) {
-    throw new Error("Record time is invalid.");
+    throw new Error("记录时间无效。");
   }
 
   if (parsed.getTime() > now.getTime() + 5 * 60_000) {
-    throw new Error("Record time cannot be in the future.");
+    throw new Error("记录时间不能晚于当前时间。");
   }
 
   return parsed;

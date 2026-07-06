@@ -212,21 +212,21 @@ export async function createChild(
   const membership = await getActiveFamily(userId, db);
 
   if (!membership) {
-    return { ok: false, error: "Active family membership is required." };
+    return { ok: false, error: "需要先加入一个有效家庭。" };
   }
 
   if (membership.role !== "owner") {
-    return { ok: false, error: "Only owners can manage children." };
+    return { ok: false, error: "只有家庭管理员可以管理宝宝资料。" };
   }
 
   const name = input.name.trim();
   if (!name) {
-    return { ok: false, error: "Child name is required." };
+    return { ok: false, error: "请输入宝宝姓名。" };
   }
 
   const birthday = new Date(`${input.birthday}T00:00:00.000Z`);
   if (Number.isNaN(birthday.getTime())) {
-    return { ok: false, error: "Birthday is invalid." };
+    return { ok: false, error: "宝宝生日无效。" };
   }
 
   const child = await db.child.create({
@@ -265,30 +265,30 @@ export async function updateChild(
   const membership = await getActiveFamily(userId, db);
 
   if (!membership) {
-    return { ok: false, error: "Active family membership is required." };
+    return { ok: false, error: "需要先加入一个有效家庭。" };
   }
 
   if (membership.role !== "owner") {
-    return { ok: false, error: "Only owners can manage children." };
+    return { ok: false, error: "只有家庭管理员可以管理宝宝资料。" };
   }
 
   const child = await getAccessibleChild(userId, childId, db);
   if (!child) {
-    return { ok: false, error: "Child is not accessible." };
+    return { ok: false, error: "无法访问该宝宝资料。" };
   }
 
   const name = input.name.trim();
   if (!name) {
-    return { ok: false, error: "Child name is required." };
+    return { ok: false, error: "请输入宝宝姓名。" };
   }
 
   const birthday = new Date(`${input.birthday}T00:00:00.000Z`);
   if (Number.isNaN(birthday.getTime())) {
-    return { ok: false, error: "Birthday is invalid." };
+    return { ok: false, error: "宝宝生日无效。" };
   }
 
   if (!db.child.update) {
-    return { ok: false, error: "Child update is not available." };
+    return { ok: false, error: "当前无法更新宝宝资料。" };
   }
 
   await db.child.update({
@@ -312,15 +312,15 @@ async function findChildForOwnerMutation(
   const membership = await getActiveFamily(userId, db);
 
   if (!membership) {
-    return { ok: false as const, error: "Active family membership is required." };
+    return { ok: false as const, error: "需要先加入一个有效家庭。" };
   }
 
   if (membership.role !== "owner") {
-    return { ok: false as const, error: "Only owners can manage children." };
+    return { ok: false as const, error: "只有家庭管理员可以管理宝宝资料。" };
   }
 
   if (!db.child.findFirst || !db.child.update) {
-    return { ok: false as const, error: "Child update is not available." };
+    return { ok: false as const, error: "当前无法更新宝宝资料。" };
   }
 
   const child = await db.child.findFirst({
@@ -331,7 +331,7 @@ async function findChildForOwnerMutation(
   });
 
   if (!child) {
-    return { ok: false as const, error: "Child is not accessible." };
+    return { ok: false as const, error: "无法访问该宝宝资料。" };
   }
 
   return { ok: true as const, child };
@@ -381,7 +381,7 @@ export async function setCurrentChild(
   const child = await getAccessibleChild(userId, childId, db);
 
   if (!child) {
-    return { ok: false, error: "Child is not accessible." };
+    return { ok: false, error: "无法访问该宝宝资料。" };
   }
 
   await db.userPreference.upsert({

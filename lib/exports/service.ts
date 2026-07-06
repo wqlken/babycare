@@ -145,7 +145,7 @@ export async function buildOwnerExportCsv(
   const to = parseExportDate(input.to);
 
   if (!from || !to || from > to) {
-    return { ok: false, status: 400, error: "Export date range is invalid." };
+    return { ok: false, status: 400, error: "导出日期范围无效。" };
   }
 
   const membership = await db.familyMember.findFirst({
@@ -156,11 +156,11 @@ export async function buildOwnerExportCsv(
   });
 
   if (!membership) {
-    return { ok: false, status: 401, error: "Authentication is required." };
+    return { ok: false, status: 401, error: "请先登录。" };
   }
 
   if (membership.role !== "owner") {
-    return { ok: false, status: 403, error: "Only owners can export records." };
+    return { ok: false, status: 403, error: "只有家庭管理员可以导出记录。" };
   }
 
   const child = await db.child.findFirst({
@@ -172,7 +172,7 @@ export async function buildOwnerExportCsv(
   });
 
   if (!child) {
-    return { ok: false, status: 404, error: "Child is not accessible." };
+    return { ok: false, status: 404, error: "无法访问该宝宝资料。" };
   }
 
   const rangeStart = getLocalDayRange(from, timezone).start;

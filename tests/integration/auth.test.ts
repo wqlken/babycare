@@ -116,7 +116,7 @@ describe("authentication rules", () => {
 
     expect(result).toEqual({
       ok: false,
-      error: "Registration requires an invitation.",
+      error: "注册需要有效邀请。",
     });
   });
 
@@ -144,7 +144,7 @@ describe("authentication rules", () => {
 
     expect(result).toEqual({
       ok: false,
-      error: "Invitation is invalid or already used.",
+      error: "邀请无效或已被使用。",
     });
     await expect(db.user.count()).resolves.toBe(1);
   });
@@ -260,7 +260,7 @@ describe("authentication rules", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "Current password is incorrect.",
+      error: "当前密码不正确。",
     });
   });
 
@@ -301,7 +301,7 @@ describe("authentication rules", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "Milk unit must be ml or oz.",
+      error: "奶量单位只能是 ml 或 oz。",
     });
     expect(db.userPreference.upsert).not.toHaveBeenCalled();
   });

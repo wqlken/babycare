@@ -3,6 +3,7 @@ import {
   createBottleFeeding,
   createDiaper,
   deleteRecord,
+  getActiveSleep,
   updateBottleFeeding,
   startBreastfeeding,
   startSleep,
@@ -359,7 +360,7 @@ describe("record creation", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "Child is not accessible.",
+      error: "无法访问该宝宝资料。",
     });
     expect(db.feedingRecord.create).not.toHaveBeenCalled();
   });
@@ -389,7 +390,7 @@ describe("record creation", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "An active breastfeeding record already exists.",
+      error: "当前已有一段进行中的母乳记录，请先结束后再开始新的母乳记录。",
     });
   });
 
@@ -482,7 +483,37 @@ describe("record creation", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "An active sleep record already exists.",
+      error: "当前已有一段进行中的睡眠，请先结束后再开始新的睡眠。",
+    });
+  });
+
+  test("returns the active sleep record for one child", async () => {
+    const db = createRecordsDatabase();
+    await startSleep(
+      "user-1",
+      {
+        childId: "child-1",
+        startTime: new Date("2026-06-25T01:00:00.000Z"),
+      },
+      db,
+    );
+
+    await expect(
+      getActiveSleep(
+        "user-1",
+        {
+          childId: "child-1",
+        },
+        db,
+      ),
+    ).resolves.toEqual({
+      ok: true,
+      activeSleep: expect.objectContaining({
+        id: "sleep-1",
+        creatorDisplayName: "Owner",
+        startTime: new Date("2026-06-25T01:00:00.000Z"),
+        endTime: null,
+      }),
     });
   });
 
@@ -580,7 +611,7 @@ describe("record creation", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "Only owners or record creators can edit records.",
+      error: "只有家庭管理员或记录创建者可以编辑记录。",
     });
   });
 
@@ -610,7 +641,7 @@ describe("record creation", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "Record has changed. Refresh and try again.",
+      error: "记录已被更新，请刷新后重试。",
     });
     expect(db.feedingRecord.update).not.toHaveBeenCalled();
   });
@@ -686,7 +717,7 @@ describe("record creation", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "Record is not accessible.",
+      error: "无法访问该记录。",
     });
   });
 
@@ -708,7 +739,7 @@ describe("record creation", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "Only owners can delete records.",
+      error: "只有家庭管理员可以删除记录。",
     });
   });
 });

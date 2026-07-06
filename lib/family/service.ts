@@ -159,16 +159,16 @@ export async function createInvite(
   });
 
   if (!membership) {
-    return { ok: false, error: "Active family membership is required." };
+    return { ok: false, error: "需要先加入一个有效家庭。" };
   }
 
   if (membership.role !== "owner") {
-    return { ok: false, error: "Only owners can create invitations." };
+    return { ok: false, error: "只有家庭管理员可以创建邀请。" };
   }
 
   const invitedEmail = normalizeEmail(input.email);
   if (!invitedEmail) {
-    return { ok: false, error: "Invite email is required." };
+    return { ok: false, error: "请输入邀请邮箱。" };
   }
 
   const token = randomBytes(24).toString("base64url");
@@ -210,18 +210,18 @@ export async function acceptInvite(
   });
 
   if (!invite) {
-    return { ok: false, error: "Invitation is invalid or already used." };
+    return { ok: false, error: "邀请无效或已被使用。" };
   }
 
   const now = input.now ?? new Date();
   if (invite.expiresAt < now) {
-    return { ok: false, error: "Invitation has expired." };
+    return { ok: false, error: "邀请已过期。" };
   }
 
   if (normalizeEmail(input.email) !== invite.invitedEmail) {
     return {
       ok: false,
-      error: "Invitation email does not match this account.",
+      error: "邀请邮箱与当前账号不匹配。",
     };
   }
 
@@ -260,18 +260,18 @@ export async function validateInviteForEmail(
   });
 
   if (!invite) {
-    return { ok: false, error: "Invitation is invalid or already used." };
+    return { ok: false, error: "邀请无效或已被使用。" };
   }
 
   const now = input.now ?? new Date();
   if (invite.expiresAt < now) {
-    return { ok: false, error: "Invitation has expired." };
+    return { ok: false, error: "邀请已过期。" };
   }
 
   if (normalizeEmail(input.email) !== invite.invitedEmail) {
     return {
       ok: false,
-      error: "Invitation email does not match this account.",
+      error: "邀请邮箱与当前账号不匹配。",
     };
   }
 
@@ -322,15 +322,15 @@ async function getFamilyActionContext(
   });
 
   if (!actor) {
-    return { ok: false, error: "Active family membership is required." };
+    return { ok: false, error: "需要先加入一个有效家庭。" };
   }
 
   if (actor.role !== "owner") {
-    return { ok: false, error: "Only owners can manage family members." };
+    return { ok: false, error: "只有家庭管理员可以管理家庭成员。" };
   }
 
   if (!db.familyMember.findUnique) {
-    return { ok: false, error: "Family member management is not available." };
+    return { ok: false, error: "当前无法管理家庭成员。" };
   }
 
   const target = await db.familyMember.findUnique({
@@ -339,7 +339,7 @@ async function getFamilyActionContext(
   });
 
   if (!target || target.familyId !== actor.familyId || target.removedAt) {
-    return { ok: false, error: "Family member is not accessible." };
+    return { ok: false, error: "无法访问该家庭成员。" };
   }
 
   return {
@@ -384,14 +384,14 @@ export async function removeFamilyMember(
   db: FamilyDatabase = prisma,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   if (!db.familyMember.update || !db.familyMember.count) {
-    return { ok: false, error: "Family member management is not available." };
+    return { ok: false, error: "当前无法管理家庭成员。" };
   }
 
   const context = await getFamilyActionContext(userId, input.memberId, db);
   if (!context.ok) return context;
 
   if (await wouldRemoveLastOwner(context.target, db)) {
-    return { ok: false, error: "A family must keep at least one owner." };
+    return { ok: false, error: "家庭中必须至少保留一位管理员。" };
   }
 
   await db.familyMember.update({
@@ -413,19 +413,19 @@ export async function updateFamilyMemberRole(
   db: FamilyDatabase = prisma,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   if (!db.familyMember.update || !db.familyMember.count) {
-    return { ok: false, error: "Family member management is not available." };
+    return { ok: false, error: "当前无法管理家庭成员。" };
   }
 
   const context = await getFamilyActionContext(userId, input.memberId, db);
   if (!context.ok) return context;
 
   if (input.role !== "owner" && input.role !== "caregiver") {
-    return { ok: false, error: "Family role is invalid." };
+    return { ok: false, error: "家庭成员角色无效。" };
   }
 
   if (context.target.role === "owner" && input.role === "caregiver") {
     if (await wouldRemoveLastOwner(context.target, db)) {
-      return { ok: false, error: "A family must keep at least one owner." };
+      return { ok: false, error: "家庭中必须至少保留一位管理员。" };
     }
   }
 
@@ -452,7 +452,7 @@ export async function resetCaregiverPassword(
   | { ok: false; error: string }
 > {
   if (!db.user) {
-    return { ok: false, error: "Password reset is not available." };
+    return { ok: false, error: "当前无法重置密码。" };
   }
 
   const context = await getFamilyActionContext(userId, input.memberId, db);
@@ -461,7 +461,7 @@ export async function resetCaregiverPassword(
   if (context.target.userId === userId || context.target.role !== "caregiver") {
     return {
       ok: false,
-      error: "Only caregiver passwords can be reset by owners.",
+      error: "只有照护者密码可以由家庭管理员重置。",
     };
   }
 

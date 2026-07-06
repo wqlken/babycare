@@ -128,17 +128,17 @@ export async function registerUser(
   const displayName = input.displayName.trim();
 
   if (!email || !displayName) {
-    return { ok: false, error: "Email and display name are required." };
+    return { ok: false, error: "请输入邮箱和显示名称。" };
   }
 
   const existingUsers = await db.user.count();
   if (existingUsers > 0 && !input.inviteToken) {
-    return { ok: false, error: "Registration requires an invitation." };
+    return { ok: false, error: "注册需要有效邀请。" };
   }
 
   if (input.inviteToken) {
     if (!db.invite || !db.familyMember) {
-      return { ok: false, error: "Invitation is invalid or already used." };
+      return { ok: false, error: "邀请无效或已被使用。" };
     }
 
     const inviteResult = await validateInviteForEmail(
@@ -210,7 +210,7 @@ export async function authenticateUser(
   });
 
   if (!user || !(await verifyPassword(input.password, user.passwordHash))) {
-    return { ok: false, error: "Invalid email or password." };
+    return { ok: false, error: "邮箱或密码不正确。" };
   }
 
   return { ok: true, userId: user.id };
@@ -225,12 +225,12 @@ export async function updateProfile(
   db: AuthDatabase = prisma,
 ): Promise<AccountResult> {
   if (!db.user.update) {
-    return { ok: false, error: "Profile update is not available." };
+    return { ok: false, error: "当前无法更新个人资料。" };
   }
 
   const displayName = input.displayName.trim();
   if (!displayName) {
-    return { ok: false, error: "Display name is required." };
+    return { ok: false, error: "请输入显示名称。" };
   }
 
   const data: { displayName: string; email?: string } = { displayName };
@@ -238,7 +238,7 @@ export async function updateProfile(
   if (input.email !== undefined) {
     const email = normalizeEmail(input.email);
     if (!email) {
-      return { ok: false, error: "Email is required." };
+      return { ok: false, error: "请输入邮箱。" };
     }
 
     if (db.user.findFirst) {
@@ -250,7 +250,7 @@ export async function updateProfile(
       });
 
       if (existing) {
-        return { ok: false, error: "Email is already in use." };
+        return { ok: false, error: "该邮箱已被使用。" };
       }
     }
 
@@ -274,7 +274,7 @@ export async function updatePassword(
   db: AuthDatabase = prisma,
 ): Promise<AccountResult> {
   if (!db.user.findFirst || !db.user.update) {
-    return { ok: false, error: "Password update is not available." };
+    return { ok: false, error: "当前无法更新密码。" };
   }
 
   const user = await db.user.findFirst({
@@ -284,11 +284,11 @@ export async function updatePassword(
   });
 
   if (!user) {
-    return { ok: false, error: "User not found." };
+    return { ok: false, error: "未找到该用户。" };
   }
 
   if (!(await verifyPassword(input.currentPassword, user.passwordHash))) {
-    return { ok: false, error: "Current password is incorrect." };
+    return { ok: false, error: "当前密码不正确。" };
   }
 
   const passwordHash = await hashPassword(input.newPassword);
@@ -311,11 +311,11 @@ export async function updatePreferences(
   db: AuthDatabase = prisma,
 ): Promise<AccountResult> {
   if (!db.userPreference.upsert) {
-    return { ok: false, error: "Preference update is not available." };
+    return { ok: false, error: "当前无法更新偏好设置。" };
   }
 
   if (input.milkUnit !== "ml" && input.milkUnit !== "oz") {
-    return { ok: false, error: "Milk unit must be ml or oz." };
+    return { ok: false, error: "奶量单位只能是 ml 或 oz。" };
   }
 
   await db.userPreference.upsert({

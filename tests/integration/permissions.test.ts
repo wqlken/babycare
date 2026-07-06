@@ -174,7 +174,7 @@ describe("family permissions and invitations", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "Only owners can create invitations.",
+      error: "只有家庭管理员可以创建邀请。",
     });
   });
 
@@ -204,7 +204,7 @@ describe("family permissions and invitations", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "Invitation email does not match this account.",
+      error: "邀请邮箱与当前账号不匹配。",
     });
   });
 
@@ -241,7 +241,7 @@ describe("family permissions and invitations", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "Only owners can manage family members.",
+      error: "只有家庭管理员可以管理家庭成员。",
     });
   });
 
@@ -259,7 +259,7 @@ describe("family permissions and invitations", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "A family must keep at least one owner.",
+      error: "家庭中必须至少保留一位管理员。",
     });
   });
 
@@ -296,7 +296,7 @@ describe("family permissions and invitations", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "A family must keep at least one owner.",
+      error: "家庭中必须至少保留一位管理员。",
     });
   });
 
@@ -314,7 +314,7 @@ describe("family permissions and invitations", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "Only owners can manage family members.",
+      error: "只有家庭管理员可以管理家庭成员。",
     });
   });
 
@@ -357,7 +357,7 @@ describe("family permissions and invitations", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "Only caregiver passwords can be reset by owners.",
+      error: "只有照护者密码可以由家庭管理员重置。",
     });
   });
 });

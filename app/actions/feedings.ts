@@ -33,7 +33,7 @@ export async function createBottleFeedingAction(formData: FormData) {
     redirectWithError(
       childId,
       "new",
-      error instanceof Error ? error.message : "Milk volume is invalid.",
+      error instanceof Error ? error.message : "奶量无效。",
     );
   }
 
@@ -65,7 +65,7 @@ export async function startBreastfeedingAction(formData: FormData) {
     redirectWithError(
       childId,
       "new",
-      error instanceof Error ? error.message : "Record time is invalid.",
+      error instanceof Error ? error.message : "记录时间无效。",
     );
   }
 
@@ -116,7 +116,7 @@ export async function updateBottleFeedingAction(formData: FormData) {
   } catch (error) {
     redirect(
       `/children/${childId}/timeline?error=${encodeURIComponent(
-        error instanceof Error ? error.message : "Milk volume is invalid.",
+        error instanceof Error ? error.message : "奶量无效。",
       )}`,
     );
   }

@@ -16,6 +16,10 @@ type PageProps = {
   }>;
 };
 
+function formatRole(role: "owner" | "caregiver") {
+  return role === "owner" ? "家庭管理员" : "照护者";
+}
+
 export default async function FamilySettingsPage({ searchParams }: PageProps) {
   const user = await requireUser();
   const [members, query] = await Promise.all([
@@ -77,7 +81,9 @@ export default async function FamilySettingsPage({ searchParams }: PageProps) {
           >
             <p className="font-medium text-slate-950">{member.user.displayName}</p>
             <p className="text-sm text-slate-500">{member.user.email}</p>
-            <p className="mt-1 text-sm text-slate-700">{member.role}</p>
+            <p className="mt-1 text-sm text-slate-700">
+              {formatRole(member.role)}
+            </p>
             {member.userId !== user.id ? (
               <div className="mt-3 flex flex-wrap gap-2">
                 <form action={updateFamilyMemberRoleAction}>
@@ -88,7 +94,7 @@ export default async function FamilySettingsPage({ searchParams }: PageProps) {
                     value={member.role === "owner" ? "caregiver" : "owner"}
                   />
                   <button className="rounded border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700">
-                    {member.role === "owner" ? "降为照护者" : "设为 Owner"}
+                    {member.role === "owner" ? "降为照护者" : "设为管理员"}
                   </button>
                 </form>
                 {member.role === "caregiver" ? (

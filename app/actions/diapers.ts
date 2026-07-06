@@ -17,7 +17,7 @@ export async function createDiaperAction(formData: FormData) {
   } catch (error) {
     redirect(
       `/children/${childId}/diapers/new?error=${encodeURIComponent(
-        error instanceof Error ? error.message : "Record time is invalid.",
+        error instanceof Error ? error.message : "记录时间无效。",
       )}`,
     );
   }

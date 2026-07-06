@@ -68,7 +68,7 @@ describe("time helpers", () => {
         timezone: "Asia/Shanghai",
         now: new Date("2026-06-25T00:35:00.000Z"),
       }),
-    ).toThrow("Record time cannot be in the future.");
+    ).toThrow("记录时间不能晚于当前时间。");
   });
 
   test("rejects invalid calendar dates from record time input", () => {
@@ -77,6 +77,6 @@ describe("time helpers", () => {
         timezone: "Asia/Shanghai",
         now: new Date("2026-06-25T00:35:00.000Z"),
       }),
-    ).toThrow("Record time is invalid.");
+    ).toThrow("记录时间无效。");
   });
 });

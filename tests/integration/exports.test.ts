@@ -138,7 +138,7 @@ describe("owner CSV export", () => {
     ).resolves.toEqual({
       ok: false,
       status: 403,
-      error: "Only owners can export records.",
+      error: "只有家庭管理员可以导出记录。",
     });
   });
 });

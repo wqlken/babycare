@@ -11,7 +11,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   if (!user) {
     return NextResponse.json(
-      { error: "Authentication is required." },
+      { error: "请先登录。" },
       { status: 401 },
     );
   }

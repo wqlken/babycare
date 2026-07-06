@@ -50,6 +50,7 @@ type ActiveSleepRecord = {
   id: string;
   childId?: string;
   creatorId?: string;
+  creatorDisplayName?: string;
   startTime?: Date;
   endTime?: Date | null;
   notes?: string | null;
@@ -250,7 +251,7 @@ async function getRecordContext(
   ]);
 
   if (!user || !membership) {
-    return { ok: false as const, error: "Active family membership is required." };
+    return { ok: false as const, error: "需要先加入一个有效家庭。" };
   }
 
   const child = await db.child.findFirst({
@@ -262,7 +263,7 @@ async function getRecordContext(
   });
 
   if (!child) {
-    return { ok: false as const, error: "Child is not accessible." };
+    return { ok: false as const, error: "无法访问该宝宝资料。" };
   }
 
   return {
@@ -312,7 +313,7 @@ export async function createBottleFeeding(
   db: RecordsDatabase = prisma,
 ): Promise<RecordResult> {
   if (!Number.isInteger(input.amountMl) || input.amountMl <= 0) {
-    return { ok: false, error: "Bottle amount must be a positive milliliter value." };
+    return { ok: false, error: "瓶喂奶量必须是大于 0 的毫升数。" };
   }
 
   const context = await getRecordContext(userId, input.childId, db);
@@ -360,7 +361,7 @@ export async function startBreastfeeding(
   if (active) {
     return {
       ok: false,
-      error: "An active breastfeeding record already exists.",
+      error: "当前已有一段进行中的母乳记录，请先结束后再开始新的母乳记录。",
     };
   }
 
@@ -434,7 +435,10 @@ export async function startSleep(
   });
 
   if (active) {
-    return { ok: false, error: "An active sleep record already exists." };
+    return {
+      ok: false,
+      error: "当前已有一段进行中的睡眠，请先结束后再开始新的睡眠。",
+    };
   }
 
   const record = await db.sleepRecord.create({
@@ -449,6 +453,30 @@ export async function startSleep(
   });
 
   return { ok: true, recordId: record.id };
+}
+
+export async function getActiveSleep(
+  userId: string,
+  input: {
+    childId: string;
+  },
+  db: RecordsDatabase = prisma,
+): Promise<
+  | { ok: true; activeSleep: ActiveSleepRecord | null }
+  | { ok: false; error: string }
+> {
+  const context = await getRecordContext(userId, input.childId, db);
+  if (!context.ok) return context;
+
+  const activeSleep = await db.sleepRecord.findFirst({
+    where: {
+      childId: context.child.id,
+      endTime: null,
+      deletedAt: null,
+    },
+  });
+
+  return { ok: true, activeSleep };
 }
 
 export async function stopBreastfeeding(
@@ -472,7 +500,7 @@ export async function stopBreastfeeding(
   });
 
   if (!active) {
-    return { ok: false, error: "No active breastfeeding record exists." };
+    return { ok: false, error: "当前没有进行中的母乳记录。" };
   }
 
   const record = await db.feedingRecord.update({
@@ -506,7 +534,7 @@ export async function stopSleep(
   });
 
   if (!active) {
-    return { ok: false, error: "No active sleep record exists." };
+    return { ok: false, error: "当前没有进行中的睡眠记录。" };
   }
 
   const record = await db.sleepRecord.update({
@@ -533,7 +561,7 @@ export async function updateBottleFeeding(
   db: RecordsDatabase = prisma,
 ): Promise<RecordResult> {
   if (!Number.isInteger(input.amountMl) || input.amountMl <= 0) {
-    return { ok: false, error: "Bottle amount must be a positive milliliter value." };
+    return { ok: false, error: "瓶喂奶量必须是大于 0 的毫升数。" };
   }
 
   const context = await getRecordContext(userId, input.childId, db);
@@ -548,20 +576,20 @@ export async function updateBottleFeeding(
   });
 
   if (!existing) {
-    return { ok: false, error: "Record is not accessible." };
+    return { ok: false, error: "无法访问该记录。" };
   }
 
   if (!canEditRecord(context.membership, context.user.id, existing)) {
     return {
       ok: false,
-      error: "Only owners or record creators can edit records.",
+      error: "只有家庭管理员或记录创建者可以编辑记录。",
     };
   }
 
   if (existing.updatedAt?.getTime() !== input.updatedAt.getTime()) {
     return {
       ok: false,
-      error: "Record has changed. Refresh and try again.",
+      error: "记录已被更新，请刷新后重试。",
     };
   }
 
@@ -591,7 +619,7 @@ export async function deleteRecord(
   if (!context.ok) return context;
 
   if (context.membership.role !== "owner") {
-    return { ok: false, error: "Only owners can delete records." };
+    return { ok: false, error: "只有家庭管理员可以删除记录。" };
   }
 
   if (input.kind === "feeding") {
@@ -604,7 +632,7 @@ export async function deleteRecord(
     });
 
     if (!record) {
-      return { ok: false, error: "Record is not accessible." };
+      return { ok: false, error: "无法访问该记录。" };
     }
 
     await db.feedingRecord.update({
@@ -627,7 +655,7 @@ export async function deleteRecord(
     });
 
     if (!record) {
-      return { ok: false, error: "Record is not accessible." };
+      return { ok: false, error: "无法访问该记录。" };
     }
 
     await db.diaperRecord.update?.({
@@ -649,7 +677,7 @@ export async function deleteRecord(
   });
 
   if (!record) {
-    return { ok: false, error: "Record is not accessible." };
+    return { ok: false, error: "无法访问该记录。" };
   }
 
   await db.sleepRecord.update({

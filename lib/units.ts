@@ -6,7 +6,7 @@ export function parseMilkVolumeToMl(value: string, unit: MilkUnit) {
   const parsed = Number(value);
 
   if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw new Error("Milk volume must be a positive number.");
+    throw new Error("奶量必须是大于 0 的数字。");
   }
 
   if (unit === "oz") {
