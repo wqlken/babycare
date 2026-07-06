@@ -54,7 +54,10 @@ export default async function Home() {
             today={dashboard.summary}
             summaries={dashboard.sevenDaySummary}
           />
-          <SevenDaySummary summaries={dashboard.sevenDaySummary} />
+          <SevenDaySummary
+            actionHref={`/children/${currentChild.id}/summary`}
+            summaries={dashboard.sevenDaySummary}
+          />
           <RecentEvents
             childId={currentChild.id}
             items={dashboard.timelineItems}

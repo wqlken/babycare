@@ -24,6 +24,8 @@ type SleepSummaryInput = {
 export type DaySummary = {
   date: string;
   feedingCount: number;
+  bottleCount: number;
+  breastCount: number;
   bottleMl: number;
   diaperCount: number;
   sleepMinutes: number;
@@ -31,6 +33,15 @@ export type DaySummary = {
 
 export type SummaryInput = {
   date: string;
+  timezone?: string;
+  feedings: FeedingSummaryInput[];
+  diapers: DiaperSummaryInput[];
+  sleeps: SleepSummaryInput[];
+};
+
+export type DateRangeSummaryInput = {
+  startDate: string;
+  endDate: string;
   timezone?: string;
   feedings: FeedingSummaryInput[];
   diapers: DiaperSummaryInput[];
@@ -69,6 +80,8 @@ export function summarizeDay(input: SummaryInput): DaySummary {
   return {
     date: input.date,
     feedingCount: feedings.length,
+    bottleCount: feedings.filter((feeding) => feeding.type === "bottle").length,
+    breastCount: feedings.filter((feeding) => feeding.type === "breast").length,
     bottleMl: feedings.reduce(
       (total, feeding) => total + (feeding.amountMl ?? 0),
       0,
@@ -85,17 +98,38 @@ export function buildSevenDaySummary(input: {
   diapers: DiaperSummaryInput[];
   sleeps: SleepSummaryInput[];
 }) {
-  return Array.from({ length: 7 }, (_, index) => {
-    const date = addDays(input.endDate, index - 6);
-
-    return summarizeDay({
-      date,
-      timezone: input.timezone,
-      feedings: input.feedings,
-      diapers: input.diapers,
-      sleeps: input.sleeps,
-    });
+  return buildDateRangeSummary({
+    startDate: addDays(input.endDate, -6),
+    endDate: input.endDate,
+    timezone: input.timezone,
+    feedings: input.feedings,
+    diapers: input.diapers,
+    sleeps: input.sleeps,
   });
+}
+
+export function buildDateRangeSummary(input: DateRangeSummaryInput) {
+  if (input.startDate > input.endDate) {
+    throw new Error("开始日期不能晚于结束日期。");
+  }
+
+  const summaries: DaySummary[] = [];
+  let currentDate = input.startDate;
+
+  while (currentDate <= input.endDate) {
+    summaries.push(
+      summarizeDay({
+        date: currentDate,
+        timezone: input.timezone,
+        feedings: input.feedings,
+        diapers: input.diapers,
+        sleeps: input.sleeps,
+      }),
+    );
+    currentDate = addDays(currentDate, 1);
+  }
+
+  return summaries;
 }
 
 export function buildBottleProgress(input: {

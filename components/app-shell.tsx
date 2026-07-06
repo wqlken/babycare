@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import Link from "next/link";
-import { Baby, Clock3, Home, Milk, Moon } from "lucide-react";
+import { Baby, BarChart3, Clock3, Home, Milk, Moon } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
 import { ChildSwitcher } from "@/components/child-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -33,12 +33,20 @@ export function AppShell({
               首页
             </Link>
             {currentChildId ? (
-              <Link
-                className="bc-focus-ring rounded border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--foreground)]"
-                href={`/children/${currentChildId}`}
-              >
-                宝宝资料
-              </Link>
+              <>
+                <Link
+                  className="bc-focus-ring rounded border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--foreground)]"
+                  href={`/children/${currentChildId}/summary`}
+                >
+                  汇总
+                </Link>
+                <Link
+                  className="bc-focus-ring rounded border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--foreground)]"
+                  href={`/children/${currentChildId}`}
+                >
+                  宝宝资料
+                </Link>
+              </>
             ) : null}
             <Link
               className="bc-focus-ring rounded border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--foreground)]"
@@ -64,7 +72,7 @@ export function AppShell({
       <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
       {currentChildId ? (
         <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--border-soft)] bg-[var(--surface)]/95 px-3 pb-3 pt-2 shadow-[0_-8px_24px_rgb(0_0_0_/_0.08)] backdrop-blur md:hidden">
-          <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
+          <div className="mx-auto grid max-w-md grid-cols-4 gap-2">
             <Link
               className="bc-focus-ring flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg text-sm font-medium text-[var(--foreground)]"
               href="/"
@@ -78,6 +86,13 @@ export function AppShell({
             >
               <Clock3 aria-hidden="true" size={24} />
               时间线
+            </Link>
+            <Link
+              className="bc-focus-ring flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg text-sm font-medium text-[var(--foreground)]"
+              href={`/children/${currentChildId}/summary`}
+            >
+              <BarChart3 aria-hidden="true" size={24} />
+              汇总
             </Link>
             <div className="grid grid-cols-3 gap-1 rounded-lg bg-[var(--surface-muted)] p-1">
               <Link

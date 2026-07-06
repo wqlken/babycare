@@ -166,11 +166,15 @@ Recommended layout order:
 3. Active timers, when present.
 4. Today summary cards.
 5. Daily rhythm visualization.
-6. Bottle insights and seven-day summary.
+6. Mixed-feeding overview, bottle trend, and seven-day summary with a history summary link.
 7. Recent events.
 
 Summary cards should use consistent card tokens, typography, and category
 markers. Values must remain readable on small screens and in dark mode.
+The seven-day summary remains the dashboard default, while a child history
+summary page handles selected date ranges, range totals, and daily rows for up
+to 31 days. The mobile bottom navigation should include a summary shortcut so
+reviewing history does not require returning through the dashboard table.
 
 ## Daily Rhythm Visualization
 
@@ -276,6 +280,8 @@ Implemented on `main` after the post-v1.2.1 design pass:
 - Tokenized high-frequency record forms.
 - Conditional stool details for diaper records.
 - Daily rhythm dashboard visualization.
+- Mixed-feeding dashboard overview that shows bottle total and breastfeeding count without a fixed default milk target.
+- Date-range history summary page with range totals and a mobile summary navigation shortcut.
 
 ## Approval Notes
 

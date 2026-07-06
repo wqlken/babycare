@@ -16,7 +16,7 @@ Status as of 2026-07-02:
 - Implemented V1 scope includes bootstrap registration, invite-bound registration, login/logout, first-child onboarding, current child preference, baby profile editing, account settings, family invitations, caregiver removal with last-owner protection, feeding/diaper/sleep logging, breastfeeding and sleep start/stop timers, dashboard summaries, recent records, timeline display, owner record deletion, bottle feeding edit controls, Docker Compose, and manual backup/restore scripts.
 - V1.1 soft deletion, edited metadata, optimistic bottle editing, owner CSV export, family administration, seven-day summary, PWA metadata, and network-unavailable handling are implemented on `main`.
 - V1.2 bottle content, stool details, milk unit preference, ounce input conversion, child archiving, archived-child record blocking, and creator display name snapshot coverage are implemented on `main` and tagged as `v1.2.0`.
-- Post-v1.2 UI polish is implemented on `main`: the dashboard and high-frequency forms use a softer low-saturation palette, larger touch targets, and milk volume progress/trend visuals.
+- Post-v1.2 UI polish is implemented on `main`: the dashboard and high-frequency forms use a softer low-saturation palette, larger touch targets, a mixed-feeding overview, bottle trend visuals, and a date-range history summary view.
 - Post-v1.2 UI polish now includes tokenized light/dark themes, Lucide icons, mobile bottom navigation, conditional diaper detail display, and a compact daily rhythm visualization.
 - Post-v1.2 record-entry polish is implemented in the current follow-up branch: feeding, diaper, and sleep forms show editable local record/start times, high-frequency details stay visible instead of collapsed, and the app shell plus record forms provide a direct return-home shortcut.
 - Latest verified commands on `main`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`. Docker smoke testing was not run locally because Docker CLI is not installed in this environment.
@@ -34,7 +34,7 @@ V1 includes:
 - Editable local record/start times on new record forms for after-the-fact logging.
 - Timer-based start and stop flows for breastfeeding and sleep.
 - A dashboard showing last events and today's totals.
-- A softer dashboard presentation with large quick action targets and milk volume progress/trend visuals.
+- A softer dashboard presentation with large quick action targets, a mixed-feeding overview, and bottle trend visuals.
 - A daily timeline with edit and delete controls.
 - Current child selection, child age display, and clear selected-child labels on record forms.
 - Basic owner/caregiver permissions and family data isolation.
@@ -50,7 +50,7 @@ V1.1 adds:
 - Owner CSV export for a child's feeding, diaper, and sleep records.
 - Owner temporary password reset for caregivers.
 - Role promotion and demotion with last-owner protection.
-- A lightweight recent 7-day summary for feeding, diapers, and sleep.
+- A lightweight recent 7-day summary for feeding, diapers, and sleep, plus a date-range history summary view for review.
 - Basic PWA install support for phone home-screen access.
 
 ### V1.2: Data Detail and Household Polish
@@ -92,6 +92,7 @@ Routes:
 - `/`: current child dashboard.
 - `/children`: child list and creation.
 - `/children/[childId]`: child details and settings.
+- `/children/[childId]/summary`: date-range summary review for feeding, bottle volume, diapers, and sleep.
 - `/children/[childId]/feedings/new`: create a feeding record.
 - `/children/[childId]/diapers/new`: create a diaper record.
 - `/children/[childId]/sleep`: start, end, or backfill sleep.
@@ -101,7 +102,7 @@ Routes:
 
 First-run onboarding should be explicit. The first registered owner automatically gets a default family workspace, then is guided to create the first child. If a logged-in family has no children, the root dashboard should redirect or route the user into the child creation flow instead of showing an empty dashboard.
 
-The dashboard should be optimized for one-handed phone use. It should show time since the last feeding, diaper, and sleep event, today's feeding count and bottle volume, today's diaper count, today's sleep duration, and large actions for feeding, diaper, and sleep logging. In-progress breastfeeding and sleep records should appear as active timer states on the dashboard with clear stop actions. Bottle feeding and diaper logging remain one-shot quick forms, and primary app views should keep a direct route back to the home dashboard.
+The dashboard should be optimized for one-handed phone use. It should show time since the last feeding, diaper, and sleep event, today's feeding count, today's bottle volume, today's breastfeeding count, today's diaper count, today's sleep duration, and large actions for feeding, diaper, and sleep logging. In-progress breastfeeding and sleep records should appear as active timer states on the dashboard with clear stop actions. Bottle feeding and diaper logging remain one-shot quick forms, and primary app views should keep a direct route back to the home dashboard.
 
 Fast logging is a product acceptance criterion. Bottle and diaper records should be savable from the dashboard path with at most two user actions after choosing the action, using sensible defaults and visible fields rather than collapsed detail sections. Breastfeeding and sleep should support one action to start and one action to stop. New record forms should display the default local record or start time and allow it to be edited before saving, so delayed entries do not require later correction. Less common fields may move to later edit views if they make the primary form too long.
 
@@ -111,7 +112,7 @@ The "time since last feeding" display should use the feeding completion time. Fo
 
 The V1 through V1.2 product phases do not send system notifications, Push notifications, SMS, email reminders, or scheduled alerts. Reminder behavior is passive: the dashboard shows how long it has been since the last feeding, diaper, and sleep event.
 
-The V1.1 recent 7-day summary should provide basic trend visibility without a charting dependency. It should show daily feeding count, bottle total, diaper count, and sleep total duration as a table or simple list. Complex charts and configurable reports remain out of scope for the initial product phases.
+The dashboard recent 7-day summary should provide default trend visibility without requiring date selection. It should show daily feeding count with bottle/breastfeeding split, bottle total, diaper count, and sleep total duration as a table or simple list. A child history summary page should support a selected start and end date for review, show range totals, and reuse the same daily summary table. To keep the mobile table responsive and query cost predictable, custom ranges are capped at 31 days. Complex configurable reports remain out of scope for the initial product phases.
 
 Record notes are visible to all members of the same family and are included in CSV exports. Notes should not appear on the dashboard summary; they should appear only in timeline details and edit views.
 
@@ -202,7 +203,8 @@ Automated tests should cover:
 - Caregivers cannot delete other users' records.
 - Feeding, diaper, and sleep records appear in the timeline.
 - Dashboard totals calculate correctly for the selected day.
-- The recent 7-day summary returns daily feeding count, bottle total, diaper count, and sleep total duration.
+- The recent 7-day summary returns daily feeding count with bottle/breastfeeding split, bottle total, diaper count, and sleep total duration.
+- The history summary page supports selected date ranges, shows range totals, and caps custom ranges at 31 days.
 - A child cannot start a second active sleep session.
 - A child cannot start a second active breastfeeding session.
 - Active breastfeeding and sleep timers appear on the dashboard and can be stopped.

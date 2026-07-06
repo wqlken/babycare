@@ -1,69 +1,41 @@
-import {
-  buildBottleProgress,
-  buildBottleTrend,
-  type DaySummary,
-} from "@/lib/summaries";
+import { buildBottleTrend, type DaySummary } from "@/lib/summaries";
 
 type BottleInsightsProps = {
   today: DaySummary;
   summaries: DaySummary[];
-  targetMl?: number;
 };
 
 function formatDate(date: string) {
   return date.slice(5).replace("-", "/");
 }
 
-export function BottleInsights({
-  today,
-  summaries,
-  targetMl = 800,
-}: BottleInsightsProps) {
-  const progress = buildBottleProgress({
-    currentMl: today.bottleMl,
-    targetMl,
-  });
+export function BottleInsights({ today, summaries }: BottleInsightsProps) {
   const trend = buildBottleTrend(summaries);
-  const circumference = 2 * Math.PI * 42;
-  const dashOffset = circumference * (1 - progress.percent / 100);
 
   return (
     <section className="grid gap-3 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
       <div className="rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] p-4 shadow-sm">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-base font-semibold text-[#37413d]">
-              今日奶量进度
-            </h2>
-            <p className="mt-1 text-sm text-[#7b7168]">
-              {progress.currentMl} / {progress.targetMl} ml
+        <h2 className="text-base font-semibold text-[#37413d]">
+          今日喂养概览
+        </h2>
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="rounded-lg bg-[var(--accent-feeding-soft)] p-3">
+            <p className="text-sm text-[#7b7168]">瓶喂总量</p>
+            <p className="mt-2 text-2xl font-semibold text-[#425b55]">
+              {today.bottleMl} ml
+            </p>
+            <p className="mt-1 text-xs text-[#7b7168]">
+              {today.bottleCount} 次瓶喂
             </p>
           </div>
-          <div className="relative h-28 w-28 shrink-0">
-            <svg className="h-28 w-28 -rotate-90" viewBox="0 0 100 100">
-              <circle
-                cx="50"
-                cy="50"
-                fill="none"
-                r="42"
-                stroke="var(--primary-soft)"
-                strokeWidth="10"
-              />
-              <circle
-                cx="50"
-                cy="50"
-                fill="none"
-                r="42"
-                stroke="var(--primary)"
-                strokeDasharray={circumference}
-                strokeDashoffset={dashOffset}
-                strokeLinecap="round"
-                strokeWidth="10"
-              />
-            </svg>
-            <div className="absolute inset-0 grid place-items-center text-xl font-semibold text-[#425b55]">
-              {progress.percent}%
-            </div>
+          <div className="rounded-lg bg-[var(--surface-muted)] p-3">
+            <p className="text-sm text-[#7b7168]">母乳次数</p>
+            <p className="mt-2 text-2xl font-semibold text-[#37413d]">
+              {today.breastCount} 次
+            </p>
+            <p className="mt-1 text-xs text-[#7b7168]">
+              今日共 {today.feedingCount} 次喂养
+            </p>
           </div>
         </div>
       </div>

@@ -8,11 +8,12 @@ Babycare is a self-hosted family baby tracking app for feeding, diapers, and sle
 - Later registrations require an email-bound invitation link.
 - Family owners can invite and remove caregivers.
 - Baby profiles include name, birthday, gender, notes, and owner-managed archiving.
-- The dashboard shows current child context, quick actions, active timers, recent records, and daily totals.
-- The dashboard uses a soft low-saturation palette, large touch-friendly quick actions, and milk volume progress/trend visuals.
+- The dashboard shows current child context, quick actions, active timers, recent records, daily totals, and a default recent 7-day summary.
+- The dashboard uses a soft low-saturation palette, large touch-friendly quick actions, a mixed-feeding overview, and bottle trend visuals.
 - The UI uses tokenized light and dark themes for low-light family care use.
-- Mobile navigation includes bottom-biased shortcuts for dashboard, timeline, and high-frequency record actions.
+- Mobile navigation includes bottom-biased shortcuts for dashboard, timeline, summary, and high-frequency record actions.
 - The dashboard includes a compact daily rhythm view for sleep, feeding, and diaper timing.
+- Child summary pages support date-range review for feeding, bottle volume, diapers, and sleep, with a 31-day range limit for responsive daily tables.
 - Feeding, diaper, and sleep records can be created from mobile-friendly forms with editable local record/start times for backfilled entries.
 - Bottle records support content details and ml/oz input preferences while storing milk internally in milliliters.
 - Diaper records support optional stool color and consistency details.
@@ -28,6 +29,7 @@ Babycare is a self-hosted family baby tracking app for feeding, diapers, and sle
 - `/`: current child dashboard.
 - `/children`: first child creation flow.
 - `/children/[childId]`: baby profile settings.
+- `/children/[childId]/summary`: date-range summary review.
 - `/children/[childId]/feedings/new`: feeding logging.
 - `/children/[childId]/diapers/new`: diaper logging.
 - `/children/[childId]/sleep`: sleep timer start flow.

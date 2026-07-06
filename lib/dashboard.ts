@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/db";
 import { buildDayRhythm } from "@/lib/day-rhythm";
-import { buildSevenDaySummary, summarizeDay } from "@/lib/summaries";
+import {
+  buildDateRangeSummary,
+  buildSevenDaySummary,
+  summarizeDay,
+} from "@/lib/summaries";
 import { addDays, getLocalDayRange, toLocalDateString } from "@/lib/time";
 import { buildTimelineItems } from "@/lib/timeline";
 import { getAccessibleChild } from "@/lib/children/service";
@@ -126,6 +130,93 @@ export async function getDashboardData(userId: string, childId: string) {
     }),
     sevenDaySummary: buildSevenDaySummary({
       endDate: today,
+      timezone: "Asia/Shanghai",
+      feedings,
+      diapers,
+      sleeps,
+    }),
+  };
+}
+
+export async function getChildSummaryData(
+  userId: string,
+  childId: string,
+  input: {
+    startDate: string;
+    endDate: string;
+  },
+) {
+  const child = await getAccessibleChild(userId, childId);
+
+  if (!child) {
+    return null;
+  }
+
+  const rangeStart = getLocalDayRange(input.startDate, "Asia/Shanghai").start;
+  const rangeEnd = getLocalDayRange(
+    addDays(input.endDate, 1),
+    "Asia/Shanghai",
+  ).start;
+
+  const [feedings, diapers, sleeps]: [
+    DashboardFeeding[],
+    DashboardDiaper[],
+    DashboardSleep[],
+  ] = await Promise.all([
+    prisma.feedingRecord.findMany({
+      where: {
+        childId,
+        deletedAt: null,
+        OR: [
+          {
+            endTime: {
+              gte: rangeStart,
+              lt: rangeEnd,
+            },
+          },
+          {
+            endTime: null,
+            startTime: {
+              gte: rangeStart,
+              lt: rangeEnd,
+            },
+          },
+        ],
+      },
+      orderBy: { startTime: "desc" },
+    }),
+    prisma.diaperRecord.findMany({
+      where: {
+        childId,
+        deletedAt: null,
+        time: {
+          gte: rangeStart,
+          lt: rangeEnd,
+        },
+      },
+      orderBy: { time: "desc" },
+    }),
+    prisma.sleepRecord.findMany({
+      where: {
+        childId,
+        deletedAt: null,
+        endTime: {
+          not: null,
+          gt: rangeStart,
+        },
+        startTime: {
+          lt: rangeEnd,
+        },
+      },
+      orderBy: { startTime: "desc" },
+    }),
+  ]);
+
+  return {
+    child,
+    summaries: buildDateRangeSummary({
+      startDate: input.startDate,
+      endDate: input.endDate,
       timezone: "Asia/Shanghai",
       feedings,
       diapers,
