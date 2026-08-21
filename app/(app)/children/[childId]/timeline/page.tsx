@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth/guards";
 import { notFound } from "next/navigation";
 import { deleteRecordAction } from "@/app/actions/records";
 import { updateBottleFeedingAction } from "@/app/actions/feedings";
+import type { TimelineItem } from "@/lib/timeline";
 
 type PageProps = {
   params: Promise<{ childId: string }>;
@@ -17,6 +18,20 @@ function formatTime(date: Date) {
     day: "2-digit",
     timeZone: "Asia/Shanghai",
   }).format(date);
+}
+
+function formatItemTime(item: TimelineItem) {
+  const start = formatTime(item.displayStartTime);
+
+  if (item.feedingType === "breast") {
+    if (item.displayEndTime) {
+      return `${start}-${formatTime(item.displayEndTime)}`;
+    }
+
+    return `${start} 开始`;
+  }
+
+  return start;
 }
 
 export default async function TimelinePage({ params, searchParams }: PageProps) {
@@ -58,7 +73,7 @@ export default async function TimelinePage({ params, searchParams }: PageProps) 
                   {item.edited ? " · 已编辑" : ""}
                 </p>
               </div>
-              <time className="text-sm text-slate-500">{formatTime(item.time)}</time>
+              <time className="text-sm text-slate-500">{formatItemTime(item)}</time>
             </div>
             {item.notes ? (
               <p className="mt-3 text-sm text-slate-700">{item.notes}</p>

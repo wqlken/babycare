@@ -14,6 +14,20 @@ function formatTime(date: Date) {
   }).format(date);
 }
 
+function formatItemTime(item: TimelineItem) {
+  const start = formatTime(item.displayStartTime);
+
+  if (item.feedingType === "breast") {
+    if (item.displayEndTime) {
+      return `${start}-${formatTime(item.displayEndTime)}`;
+    }
+
+    return `${start} 开始`;
+  }
+
+  return start;
+}
+
 export function RecentEvents({ childId, items }: RecentEventsProps) {
   return (
     <section className="space-y-3">
@@ -38,7 +52,7 @@ export function RecentEvents({ childId, items }: RecentEventsProps) {
                 <p className="text-sm text-[#7b7168]">{item.creatorDisplayName}</p>
               </div>
               <time className="shrink-0 text-sm text-[#7b7168]">
-                {formatTime(item.time)}
+                {formatItemTime(item)}
               </time>
             </div>
           </article>
