@@ -7,6 +7,7 @@ import {
   startBreastfeeding,
   stopBreastfeeding,
   updateBottleFeeding,
+  updateFeedingRecord,
 } from "@/lib/records/service";
 import { parseRecordDateTimeInput } from "@/lib/time";
 import { parseMilkVolumeToMl, type MilkUnit } from "@/lib/units";
@@ -124,6 +125,60 @@ export async function updateBottleFeedingAction(formData: FormData) {
   const result = await updateBottleFeeding(user.id, {
     childId,
     recordId,
+    amountMl,
+    bottleContent: String(formData.get("bottleContent") ?? "unknown"),
+    updatedAt,
+    notes: String(formData.get("notes") ?? ""),
+  });
+
+  if (!result.ok) {
+    redirect(`/children/${childId}/timeline?error=${encodeURIComponent(result.error)}`);
+  }
+
+  redirect(`/children/${childId}/timeline`);
+}
+
+export async function updateFeedingRecordAction(formData: FormData) {
+  const user = await requireUser();
+  const childId = String(formData.get("childId") ?? "");
+  const recordId = String(formData.get("recordId") ?? "");
+  const type = String(formData.get("type") ?? "bottle") as "breast" | "bottle";
+  const updatedAt = new Date(String(formData.get("updatedAt") ?? ""));
+  const milkUnit = String(formData.get("milkUnit") ?? "ml") as MilkUnit;
+  let startTime = new Date();
+  let endTime: Date | null = null;
+  let amountMl: number | null = null;
+
+  try {
+    startTime = parseRecordDateTimeInput(String(formData.get("startTime") ?? ""), {
+      timezone: process.env.FAMILY_TIMEZONE ?? "Asia/Shanghai",
+    });
+
+    if (type === "bottle") {
+      amountMl = parseMilkVolumeToMl(String(formData.get("amount") ?? ""), milkUnit);
+    } else {
+      const endTimeText = String(formData.get("endTime") ?? "");
+      endTime = endTimeText
+        ? parseRecordDateTimeInput(endTimeText, {
+            timezone: process.env.FAMILY_TIMEZONE ?? "Asia/Shanghai",
+          })
+        : null;
+    }
+  } catch (error) {
+    redirect(
+      `/children/${childId}/timeline?error=${encodeURIComponent(
+        error instanceof Error ? error.message : "记录信息无效。",
+      )}`,
+    );
+  }
+
+  const result = await updateFeedingRecord(user.id, {
+    childId,
+    recordId,
+    type,
+    breastSide: String(formData.get("breastSide") ?? "unknown"),
+    startTime,
+    endTime,
     amountMl,
     bottleContent: String(formData.get("bottleContent") ?? "unknown"),
     updatedAt,

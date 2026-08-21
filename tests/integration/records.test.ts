@@ -10,6 +10,9 @@ import {
   stopBreastfeeding,
   stopSleep,
   type RecordsDatabase,
+  updateDiaperRecord,
+  updateFeedingRecord,
+  updateSleepRecord,
 } from "@/lib/records/service";
 
 function createRecordsDatabase(options?: {
@@ -141,8 +144,13 @@ function createRecordsDatabase(options?: {
       update: vi.fn(async ({ where, data }) => {
         const feeding = feedings.find((item) => item.id === where.id);
         if (!feeding) throw new Error("Feeding not found.");
-        feeding.endTime = data.endTime ?? feeding.endTime;
-        feeding.amountMl = data.amountMl ?? feeding.amountMl;
+        feeding.breastSide =
+          "breastSide" in data ? data.breastSide : feeding.breastSide;
+        feeding.startTime = "startTime" in data ? data.startTime : feeding.startTime;
+        feeding.endTime = "endTime" in data ? data.endTime : feeding.endTime;
+        feeding.amountMl = "amountMl" in data ? data.amountMl : feeding.amountMl;
+        feeding.bottleContent =
+          "bottleContent" in data ? data.bottleContent : feeding.bottleContent;
         feeding.notes = "notes" in data ? data.notes : feeding.notes;
         feeding.deletedAt = "deletedAt" in data ? data.deletedAt : feeding.deletedAt;
         feeding.deletedById =
@@ -194,6 +202,14 @@ function createRecordsDatabase(options?: {
       update: vi.fn(async ({ where, data }) => {
         const diaper = diapers.find((item) => item.id === where.id);
         if (!diaper) throw new Error("Diaper not found.");
+        diaper.time = "time" in data ? data.time : diaper.time;
+        diaper.type = "type" in data ? data.type : diaper.type;
+        diaper.stoolColor =
+          "stoolColor" in data ? data.stoolColor : diaper.stoolColor;
+        diaper.stoolConsistency =
+          "stoolConsistency" in data
+            ? data.stoolConsistency
+            : diaper.stoolConsistency;
         diaper.notes = "notes" in data ? data.notes : diaper.notes;
         diaper.deletedAt = "deletedAt" in data ? data.deletedAt : diaper.deletedAt;
         diaper.deletedById =
@@ -253,7 +269,8 @@ function createRecordsDatabase(options?: {
       update: vi.fn(async ({ where, data }) => {
         const sleep = sleeps.find((item) => item.id === where.id);
         if (!sleep) throw new Error("Sleep not found.");
-        sleep.endTime = data.endTime ?? sleep.endTime;
+        sleep.startTime = "startTime" in data ? data.startTime : sleep.startTime;
+        sleep.endTime = "endTime" in data ? data.endTime : sleep.endTime;
         sleep.notes = "notes" in data ? data.notes : sleep.notes;
         sleep.deletedAt = "deletedAt" in data ? data.deletedAt : sleep.deletedAt;
         sleep.deletedById = "deletedById" in data ? data.deletedById : sleep.deletedById;
@@ -646,6 +663,186 @@ describe("record creation", () => {
     expect(db.feedingRecord.update).not.toHaveBeenCalled();
   });
 
+  test("updates bottle feeding time and details", async () => {
+    const db = createRecordsDatabase();
+
+    await createBottleFeeding(
+      "user-1",
+      {
+        childId: "child-1",
+        amountMl: 90,
+        bottleContent: "formula",
+        eventTime: new Date("2026-06-25T01:00:00.000Z"),
+      },
+      db,
+    );
+
+    await expect(
+      updateFeedingRecord(
+        "user-1",
+        {
+          childId: "child-1",
+          recordId: "feeding-1",
+          type: "bottle",
+          amountMl: 120,
+          bottleContent: "expressed_breast_milk",
+          startTime: new Date("2026-06-25T02:00:00.000Z"),
+          endTime: null,
+          notes: "updated",
+          updatedAt: new Date("2026-06-25T01:00:00.000Z"),
+        },
+        db,
+      ),
+    ).resolves.toEqual({ ok: true, recordId: "feeding-1" });
+
+    expect(db.feedingRecord.update).toHaveBeenCalledWith({
+      where: { id: "feeding-1" },
+      data: expect.objectContaining({
+        startTime: new Date("2026-06-25T02:00:00.000Z"),
+        endTime: new Date("2026-06-25T02:00:00.000Z"),
+        amountMl: 120,
+        bottleContent: "expressed_breast_milk",
+        notes: "updated",
+      }),
+    });
+  });
+
+  test("updates breastfeeding side and time range", async () => {
+    const db = createRecordsDatabase();
+
+    await startBreastfeeding(
+      "user-1",
+      {
+        childId: "child-1",
+        breastSide: "left",
+        startTime: new Date("2026-06-25T01:00:00.000Z"),
+      },
+      db,
+    );
+    await stopBreastfeeding(
+      "user-1",
+      {
+        childId: "child-1",
+        endTime: new Date("2026-06-25T01:20:00.000Z"),
+      },
+      db,
+    );
+
+    await expect(
+      updateFeedingRecord(
+        "user-1",
+        {
+          childId: "child-1",
+          recordId: "feeding-1",
+          type: "breast",
+          breastSide: "both",
+          startTime: new Date("2026-06-25T01:05:00.000Z"),
+          endTime: new Date("2026-06-25T01:30:00.000Z"),
+          notes: "updated",
+          updatedAt: new Date("2026-06-25T01:00:00.001Z"),
+        },
+        db,
+      ),
+    ).resolves.toEqual({ ok: true, recordId: "feeding-1" });
+
+    expect(db.feedingRecord.update).toHaveBeenCalledWith({
+      where: { id: "feeding-1" },
+      data: expect.objectContaining({
+        breastSide: "both",
+        startTime: new Date("2026-06-25T01:05:00.000Z"),
+        endTime: new Date("2026-06-25T01:30:00.000Z"),
+        amountMl: null,
+      }),
+    });
+  });
+
+  test("updates diaper time, type, and stool details", async () => {
+    const db = createRecordsDatabase();
+
+    await createDiaper(
+      "user-1",
+      {
+        childId: "child-1",
+        type: "wet",
+        time: new Date("2026-06-25T01:00:00.000Z"),
+      },
+      db,
+    );
+
+    await expect(
+      updateDiaperRecord(
+        "user-1",
+        {
+          childId: "child-1",
+          recordId: "diaper-1",
+          type: "dirty",
+          stoolColor: "yellow",
+          stoolConsistency: "soft",
+          time: new Date("2026-06-25T02:00:00.000Z"),
+          notes: "updated",
+          updatedAt: new Date("2026-06-25T01:00:00.000Z"),
+        },
+        db,
+      ),
+    ).resolves.toEqual({ ok: true, recordId: "diaper-1" });
+
+    expect(db.diaperRecord.update).toHaveBeenCalledWith({
+      where: { id: "diaper-1" },
+      data: expect.objectContaining({
+        type: "dirty",
+        stoolColor: "yellow",
+        stoolConsistency: "soft",
+        time: new Date("2026-06-25T02:00:00.000Z"),
+        notes: "updated",
+      }),
+    });
+  });
+
+  test("updates sleep time range", async () => {
+    const db = createRecordsDatabase();
+
+    await startSleep(
+      "user-1",
+      {
+        childId: "child-1",
+        startTime: new Date("2026-06-25T01:00:00.000Z"),
+      },
+      db,
+    );
+    await stopSleep(
+      "user-1",
+      {
+        childId: "child-1",
+        endTime: new Date("2026-06-25T02:00:00.000Z"),
+      },
+      db,
+    );
+
+    await expect(
+      updateSleepRecord(
+        "user-1",
+        {
+          childId: "child-1",
+          recordId: "sleep-1",
+          startTime: new Date("2026-06-25T01:10:00.000Z"),
+          endTime: new Date("2026-06-25T02:10:00.000Z"),
+          notes: "updated",
+          updatedAt: new Date("2026-06-25T01:00:00.001Z"),
+        },
+        db,
+      ),
+    ).resolves.toEqual({ ok: true, recordId: "sleep-1" });
+
+    expect(db.sleepRecord.update).toHaveBeenCalledWith({
+      where: { id: "sleep-1" },
+      data: expect.objectContaining({
+        startTime: new Date("2026-06-25T01:10:00.000Z"),
+        endTime: new Date("2026-06-25T02:10:00.000Z"),
+        notes: "updated",
+      }),
+    });
+  });
+
   test("owners soft-delete records instead of hard deleting them", async () => {
     const db = createRecordsDatabase();
 
@@ -721,11 +918,60 @@ describe("record creation", () => {
     });
   });
 
-  test("caregivers cannot delete records", async () => {
+  test("caregivers can delete records they created", async () => {
     const db = createRecordsDatabase({
       userId: "caregiver-1",
       role: "caregiver",
     });
+
+    await createBottleFeeding(
+      "caregiver-1",
+      {
+        childId: "child-1",
+        amountMl: 90,
+        eventTime: new Date("2026-06-25T01:00:00.000Z"),
+      },
+      db,
+    );
+
+    await expect(
+      deleteRecord(
+        "caregiver-1",
+        {
+          childId: "child-1",
+          kind: "feeding",
+          recordId: "feeding-1",
+        },
+        db,
+      ),
+    ).resolves.toEqual({ ok: true });
+  });
+
+  test("caregivers cannot delete records created by others", async () => {
+    const db = createRecordsDatabase({
+      userId: "owner-1",
+      role: "owner",
+    });
+
+    await createBottleFeeding(
+      "owner-1",
+      {
+        childId: "child-1",
+        amountMl: 90,
+        eventTime: new Date("2026-06-25T01:00:00.000Z"),
+      },
+      db,
+    );
+
+    db.user.findUnique = vi.fn(async () => ({
+      id: "caregiver-1",
+      displayName: "Caregiver",
+    }));
+    db.familyMember.findFirst = vi.fn(async () => ({
+      familyId: "family-1",
+      role: "caregiver" as const,
+      removedAt: null,
+    }));
 
     await expect(
       deleteRecord(
@@ -739,7 +985,7 @@ describe("record creation", () => {
       ),
     ).resolves.toEqual({
       ok: false,
-      error: "只有家庭管理员可以删除记录。",
+      error: "只有家庭管理员或记录创建者可以删除记录。",
     });
   });
 });

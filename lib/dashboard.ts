@@ -16,6 +16,7 @@ type DashboardFeeding = {
   startTime: Date;
   endTime: Date | null;
   amountMl: number | null;
+  bottleContent: "formula" | "expressed_breast_milk" | "mixed" | "other" | "unknown" | null;
   creatorDisplayName: string;
   notes: string | null;
   createdAt: Date;
@@ -25,6 +26,8 @@ type DashboardFeeding = {
 type DashboardDiaper = {
   id: string;
   type: "wet" | "dirty" | "both";
+  stoolColor: "yellow" | "brown" | "green" | "black" | "red" | "white" | "other" | "unknown" | null;
+  stoolConsistency: "watery" | "loose" | "soft" | "formed" | "hard" | "mucousy" | "other" | "unknown" | null;
   time: Date;
   creatorDisplayName: string;
   notes: string | null;

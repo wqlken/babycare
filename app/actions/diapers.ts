@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/guards";
-import { createDiaper } from "@/lib/records/service";
+import { createDiaper, updateDiaperRecord } from "@/lib/records/service";
 import { parseRecordDateTimeInput } from "@/lib/time";
 
 export async function createDiaperAction(formData: FormData) {
@@ -36,4 +36,41 @@ export async function createDiaperAction(formData: FormData) {
   }
 
   redirect("/");
+}
+
+export async function updateDiaperRecordAction(formData: FormData) {
+  const user = await requireUser();
+  const childId = String(formData.get("childId") ?? "");
+  const recordId = String(formData.get("recordId") ?? "");
+  const updatedAt = new Date(String(formData.get("updatedAt") ?? ""));
+  let time = new Date();
+
+  try {
+    time = parseRecordDateTimeInput(String(formData.get("eventTime") ?? ""), {
+      timezone: process.env.FAMILY_TIMEZONE ?? "Asia/Shanghai",
+    });
+  } catch (error) {
+    redirect(
+      `/children/${childId}/timeline?error=${encodeURIComponent(
+        error instanceof Error ? error.message : "记录时间无效。",
+      )}`,
+    );
+  }
+
+  const result = await updateDiaperRecord(user.id, {
+    childId,
+    recordId,
+    type: String(formData.get("type") ?? "wet"),
+    stoolColor: String(formData.get("stoolColor") ?? ""),
+    stoolConsistency: String(formData.get("stoolConsistency") ?? ""),
+    time,
+    updatedAt,
+    notes: String(formData.get("notes") ?? ""),
+  });
+
+  if (!result.ok) {
+    redirect(`/children/${childId}/timeline?error=${encodeURIComponent(result.error)}`);
+  }
+
+  redirect(`/children/${childId}/timeline`);
 }

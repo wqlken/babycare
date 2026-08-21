@@ -17,7 +17,7 @@ function formatTime(date: Date) {
 function formatItemTime(item: TimelineItem) {
   const start = formatTime(item.displayStartTime);
 
-  if (item.feedingType === "breast") {
+  if (item.feedingType === "breast" || item.kind === "sleep") {
     if (item.displayEndTime) {
       return `${start}-${formatTime(item.displayEndTime)}`;
     }

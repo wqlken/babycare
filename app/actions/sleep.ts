@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/guards";
-import { startSleep, stopSleep } from "@/lib/records/service";
+import { startSleep, stopSleep, updateSleepRecord } from "@/lib/records/service";
 import { parseRecordDateTimeInput } from "@/lib/time";
 
 export async function startSleepAction(formData: FormData) {
@@ -48,4 +48,47 @@ export async function stopSleepAction(formData: FormData) {
   }
 
   redirect("/");
+}
+
+export async function updateSleepRecordAction(formData: FormData) {
+  const user = await requireUser();
+  const childId = String(formData.get("childId") ?? "");
+  const recordId = String(formData.get("recordId") ?? "");
+  const updatedAt = new Date(String(formData.get("updatedAt") ?? ""));
+  let startTime = new Date();
+  let endTime: Date | null = null;
+
+  try {
+    startTime = parseRecordDateTimeInput(String(formData.get("startTime") ?? ""), {
+      timezone: process.env.FAMILY_TIMEZONE ?? "Asia/Shanghai",
+    });
+
+    const endTimeText = String(formData.get("endTime") ?? "");
+    endTime = endTimeText
+      ? parseRecordDateTimeInput(endTimeText, {
+          timezone: process.env.FAMILY_TIMEZONE ?? "Asia/Shanghai",
+        })
+      : null;
+  } catch (error) {
+    redirect(
+      `/children/${childId}/timeline?error=${encodeURIComponent(
+        error instanceof Error ? error.message : "记录时间无效。",
+      )}`,
+    );
+  }
+
+  const result = await updateSleepRecord(user.id, {
+    childId,
+    recordId,
+    startTime,
+    endTime,
+    updatedAt,
+    notes: String(formData.get("notes") ?? ""),
+  });
+
+  if (!result.ok) {
+    redirect(`/children/${childId}/timeline?error=${encodeURIComponent(result.error)}`);
+  }
+
+  redirect(`/children/${childId}/timeline`);
 }

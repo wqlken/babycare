@@ -6,6 +6,11 @@ export type TimelineItem = {
   displayStartTime: Date;
   displayEndTime?: Date | null;
   feedingType?: "breast" | "bottle";
+  breastSide?: "left" | "right" | "both" | "unknown" | null;
+  bottleContent?: "formula" | "expressed_breast_milk" | "mixed" | "other" | "unknown" | null;
+  diaperType?: "wet" | "dirty" | "both";
+  stoolColor?: "yellow" | "brown" | "green" | "black" | "red" | "white" | "other" | "unknown" | null;
+  stoolConsistency?: "watery" | "loose" | "soft" | "formed" | "hard" | "mucousy" | "other" | "unknown" | null;
   creatorDisplayName: string;
   notes: string | null;
   updatedAt?: Date;
@@ -20,6 +25,7 @@ type FeedingInput = {
   startTime: Date;
   endTime: Date | null;
   amountMl: number | null;
+  bottleContent?: "formula" | "expressed_breast_milk" | "mixed" | "other" | "unknown" | null;
   creatorDisplayName: string;
   notes: string | null;
   createdAt?: Date;
@@ -29,6 +35,8 @@ type FeedingInput = {
 type DiaperInput = {
   id: string;
   type: "wet" | "dirty" | "both";
+  stoolColor?: "yellow" | "brown" | "green" | "black" | "red" | "white" | "other" | "unknown" | null;
+  stoolConsistency?: "watery" | "loose" | "soft" | "formed" | "hard" | "mucousy" | "other" | "unknown" | null;
   time: Date;
   creatorDisplayName: string;
   notes: string | null;
@@ -87,6 +95,8 @@ export function buildTimelineItems(input: {
       displayStartTime: feeding.startTime,
       displayEndTime: feeding.type === "breast" ? feeding.endTime : undefined,
       feedingType: feeding.type,
+      breastSide: feeding.breastSide,
+      bottleContent: feeding.bottleContent,
       creatorDisplayName: feeding.creatorDisplayName,
       notes: feeding.notes,
       updatedAt: feeding.updatedAt,
@@ -99,6 +109,9 @@ export function buildTimelineItems(input: {
       title: diaperTitle(diaper.type),
       time: diaper.time,
       displayStartTime: diaper.time,
+      diaperType: diaper.type,
+      stoolColor: diaper.stoolColor,
+      stoolConsistency: diaper.stoolConsistency,
       creatorDisplayName: diaper.creatorDisplayName,
       notes: diaper.notes,
       updatedAt: diaper.updatedAt,
@@ -109,7 +122,8 @@ export function buildTimelineItems(input: {
       kind: "sleep" as const,
       title: sleep.endTime ? "睡眠" : "睡眠中",
       time: sleep.endTime ?? sleep.startTime,
-      displayStartTime: sleep.endTime ?? sleep.startTime,
+      displayStartTime: sleep.startTime,
+      displayEndTime: sleep.endTime,
       creatorDisplayName: sleep.creatorDisplayName,
       notes: sleep.notes,
       updatedAt: sleep.updatedAt,
