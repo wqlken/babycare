@@ -4,6 +4,7 @@ import {
   buildBottleTrend,
   buildDateRangeSummary,
   buildSevenDaySummary,
+  hasSummaryRecords,
   summarizeDay,
 } from "@/lib/summaries";
 
@@ -43,6 +44,7 @@ describe("summary helpers", () => {
       feedingCount: 2,
       bottleCount: 1,
       breastCount: 1,
+      breastMinutes: 20,
       bottleMl: 80,
       diaperCount: 2,
       sleepMinutes: 60,
@@ -99,6 +101,34 @@ describe("summary helpers", () => {
     });
   });
 
+  test("detects whether a daily summary has records", () => {
+    expect(
+      hasSummaryRecords({
+        date: "2026-06-25",
+        feedingCount: 0,
+        bottleCount: 0,
+        breastCount: 0,
+        breastMinutes: 0,
+        bottleMl: 0,
+        diaperCount: 0,
+        sleepMinutes: 0,
+      }),
+    ).toBe(false);
+
+    expect(
+      hasSummaryRecords({
+        date: "2026-06-25",
+        feedingCount: 0,
+        bottleCount: 0,
+        breastCount: 0,
+        breastMinutes: 0,
+        bottleMl: 0,
+        diaperCount: 0,
+        sleepMinutes: 30,
+      }),
+    ).toBe(true);
+  });
+
   test("rejects date ranges where the start date is after the end date", () => {
     expect(() =>
       buildDateRangeSummary({
@@ -126,6 +156,7 @@ describe("summary helpers", () => {
         feedingCount: 1,
         bottleCount: 1,
         breastCount: 0,
+        breastMinutes: 0,
         bottleMl: 120,
         diaperCount: 0,
         sleepMinutes: 0,
@@ -135,6 +166,7 @@ describe("summary helpers", () => {
         feedingCount: 1,
         bottleCount: 1,
         breastCount: 0,
+        breastMinutes: 0,
         bottleMl: 240,
         diaperCount: 0,
         sleepMinutes: 0,
@@ -144,6 +176,7 @@ describe("summary helpers", () => {
         feedingCount: 1,
         bottleCount: 1,
         breastCount: 0,
+        breastMinutes: 0,
         bottleMl: 60,
         diaperCount: 0,
         sleepMinutes: 0,

@@ -12,6 +12,7 @@ import type { TimelineItem } from "@/lib/timeline";
 type TimelineRecordCardProps = {
   childId: string;
   item: TimelineItem;
+  returnDate?: string;
 };
 
 function formatTime(date: Date) {
@@ -36,6 +37,17 @@ function formatItemTime(item: TimelineItem) {
   }
 
   return start;
+}
+
+function formatDuration(minutes?: number) {
+  if (minutes === undefined) return null;
+  if (minutes < 1) return "不足1分钟";
+
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+
+  if (hours === 0) return `${rest}分钟`;
+  return rest ? `${hours}小时${rest}分钟` : `${hours}小时`;
 }
 
 function bottleContentLabel(value?: TimelineItem["bottleContent"]) {
@@ -81,6 +93,16 @@ function getDetailText(item: TimelineItem) {
     return bottleContentLabel(item.bottleContent);
   }
 
+  if (item.feedingType === "breast") {
+    const duration = formatDuration(item.durationMinutes);
+
+    if (item.displayEndTime) {
+      return duration ? `喂养时长 ${duration}` : null;
+    }
+
+    return duration ? `进行中 · 已喂${duration}` : "进行中";
+  }
+
   if (item.kind === "diaper") {
     if (item.diaperType === "dirty" || item.diaperType === "both") {
       return `${diaperTypeLabel(item.diaperType)} · ${stoolColorLabel(
@@ -115,6 +137,7 @@ function BottleEditor({
   childId,
   item,
   onCancel,
+  returnDate,
 }: TimelineRecordCardProps & { onCancel: () => void }) {
   return (
     <form
@@ -123,6 +146,7 @@ function BottleEditor({
     >
       <input name="childId" type="hidden" value={childId} />
       <input name="recordId" type="hidden" value={item.id} />
+      <input name="returnDate" type="hidden" value={returnDate ?? ""} />
       <input name="type" type="hidden" value="bottle" />
       <input name="milkUnit" type="hidden" value="ml" />
       <input name="updatedAt" type="hidden" value={item.updatedAt?.toISOString() ?? ""} />
@@ -174,6 +198,7 @@ function BreastfeedingEditor({
   childId,
   item,
   onCancel,
+  returnDate,
 }: TimelineRecordCardProps & { onCancel: () => void }) {
   return (
     <form
@@ -182,6 +207,7 @@ function BreastfeedingEditor({
     >
       <input name="childId" type="hidden" value={childId} />
       <input name="recordId" type="hidden" value={item.id} />
+      <input name="returnDate" type="hidden" value={returnDate ?? ""} />
       <input name="type" type="hidden" value="breast" />
       <input name="updatedAt" type="hidden" value={item.updatedAt?.toISOString() ?? ""} />
       <FieldLabel label="开始时间">
@@ -231,6 +257,7 @@ function DiaperEditor({
   childId,
   item,
   onCancel,
+  returnDate,
 }: TimelineRecordCardProps & { onCancel: () => void }) {
   const [type, setType] = useState(item.diaperType ?? "wet");
   const showStoolFields = type === "dirty" || type === "both";
@@ -242,6 +269,7 @@ function DiaperEditor({
     >
       <input name="childId" type="hidden" value={childId} />
       <input name="recordId" type="hidden" value={item.id} />
+      <input name="returnDate" type="hidden" value={returnDate ?? ""} />
       <input name="updatedAt" type="hidden" value={item.updatedAt?.toISOString() ?? ""} />
       <FieldLabel label="记录时间">
         <input
@@ -318,6 +346,7 @@ function SleepEditor({
   childId,
   item,
   onCancel,
+  returnDate,
 }: TimelineRecordCardProps & { onCancel: () => void }) {
   return (
     <form
@@ -326,6 +355,7 @@ function SleepEditor({
     >
       <input name="childId" type="hidden" value={childId} />
       <input name="recordId" type="hidden" value={item.id} />
+      <input name="returnDate" type="hidden" value={returnDate ?? ""} />
       <input name="updatedAt" type="hidden" value={item.updatedAt?.toISOString() ?? ""} />
       <FieldLabel label="开始时间">
         <input
@@ -379,25 +409,56 @@ function Editor({
   childId,
   item,
   onCancel,
+  returnDate,
 }: TimelineRecordCardProps & { onCancel: () => void }) {
   if (item.feedingType === "bottle") {
-    return <BottleEditor childId={childId} item={item} onCancel={onCancel} />;
+    return (
+      <BottleEditor
+        childId={childId}
+        item={item}
+        onCancel={onCancel}
+        returnDate={returnDate}
+      />
+    );
   }
 
   if (item.feedingType === "breast") {
     return (
-      <BreastfeedingEditor childId={childId} item={item} onCancel={onCancel} />
+      <BreastfeedingEditor
+        childId={childId}
+        item={item}
+        onCancel={onCancel}
+        returnDate={returnDate}
+      />
     );
   }
 
   if (item.kind === "diaper") {
-    return <DiaperEditor childId={childId} item={item} onCancel={onCancel} />;
+    return (
+      <DiaperEditor
+        childId={childId}
+        item={item}
+        onCancel={onCancel}
+        returnDate={returnDate}
+      />
+    );
   }
 
-  return <SleepEditor childId={childId} item={item} onCancel={onCancel} />;
+  return (
+    <SleepEditor
+      childId={childId}
+      item={item}
+      onCancel={onCancel}
+      returnDate={returnDate}
+    />
+  );
 }
 
-export function TimelineRecordCard({ childId, item }: TimelineRecordCardProps) {
+export function TimelineRecordCard({
+  childId,
+  item,
+  returnDate,
+}: TimelineRecordCardProps) {
   const [editing, setEditing] = useState(false);
   const detailText = getDetailText(item);
 
@@ -440,13 +501,19 @@ export function TimelineRecordCard({ childId, item }: TimelineRecordCardProps) {
           <input name="childId" type="hidden" value={childId} />
           <input name="kind" type="hidden" value={item.kind} />
           <input name="recordId" type="hidden" value={item.id} />
+          <input name="returnDate" type="hidden" value={returnDate ?? ""} />
           <button className="rounded border border-red-200 px-3 py-1.5 text-sm font-medium text-red-700">
             删除
           </button>
         </form>
       </div>
       {editing ? (
-        <Editor childId={childId} item={item} onCancel={() => setEditing(false)} />
+        <Editor
+          childId={childId}
+          item={item}
+          onCancel={() => setEditing(false)}
+          returnDate={returnDate}
+        />
       ) : null}
     </article>
   );

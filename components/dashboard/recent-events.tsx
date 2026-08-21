@@ -28,6 +28,32 @@ function formatItemTime(item: TimelineItem) {
   return start;
 }
 
+function formatDuration(minutes?: number) {
+  if (minutes === undefined) return null;
+  if (minutes < 1) return "不足1分钟";
+
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+
+  if (hours === 0) return `${rest}分钟`;
+  return rest ? `${hours}小时${rest}分钟` : `${hours}小时`;
+}
+
+function getDetailText(item: TimelineItem) {
+  if (item.feedingType !== "breast") {
+    return item.creatorDisplayName;
+  }
+
+  const duration = formatDuration(item.durationMinutes);
+  const durationText = item.displayEndTime
+    ? duration
+    : duration
+      ? `进行中 · 已喂${duration}`
+      : "进行中";
+
+  return [durationText, item.creatorDisplayName].filter(Boolean).join(" · ");
+}
+
 export function RecentEvents({ childId, items }: RecentEventsProps) {
   return (
     <section className="space-y-3">
@@ -49,7 +75,7 @@ export function RecentEvents({ childId, items }: RecentEventsProps) {
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0">
                 <p className="truncate font-medium text-[#37413d]">{item.title}</p>
-                <p className="text-sm text-[#7b7168]">{item.creatorDisplayName}</p>
+                <p className="text-sm text-[#7b7168]">{getDetailText(item)}</p>
               </div>
               <time className="shrink-0 text-sm text-[#7b7168]">
                 {formatItemTime(item)}

@@ -9,6 +9,14 @@ function formatDate(date: string) {
   return date.slice(5).replace("-", "/");
 }
 
+function formatDuration(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+
+  if (hours === 0) return `${rest} 分钟`;
+  return rest ? `${hours}小时${rest}分钟` : `${hours}小时`;
+}
+
 export function BottleInsights({ today, summaries }: BottleInsightsProps) {
   const trend = buildBottleTrend(summaries);
 
@@ -34,7 +42,7 @@ export function BottleInsights({ today, summaries }: BottleInsightsProps) {
               {today.breastCount} 次
             </p>
             <p className="mt-1 text-xs text-[#7b7168]">
-              今日共 {today.feedingCount} 次喂养
+              母乳总时长 {formatDuration(today.breastMinutes)}
             </p>
           </div>
         </div>

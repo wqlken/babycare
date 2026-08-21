@@ -128,4 +128,41 @@ describe("timeline helpers", () => {
     });
     expect(bottle?.displayEndTime).toBeUndefined();
   });
+
+  test("adds breastfeeding duration for completed and active records", () => {
+    const items = buildTimelineItems({
+      now: new Date("2026-06-25T02:30:00.000Z"),
+      feedings: [
+        {
+          id: "completed",
+          type: "breast",
+          breastSide: "left",
+          startTime: new Date("2026-06-25T01:00:00.000Z"),
+          endTime: new Date("2026-06-25T01:20:00.000Z"),
+          amountMl: null,
+          creatorDisplayName: "Owner",
+          notes: null,
+        },
+        {
+          id: "active",
+          type: "breast",
+          breastSide: "right",
+          startTime: new Date("2026-06-25T02:00:00.000Z"),
+          endTime: null,
+          amountMl: null,
+          creatorDisplayName: "Owner",
+          notes: null,
+        },
+      ],
+      diapers: [],
+      sleeps: [],
+    });
+
+    expect(items.find((item) => item.id === "completed")).toMatchObject({
+      durationMinutes: 20,
+    });
+    expect(items.find((item) => item.id === "active")).toMatchObject({
+      durationMinutes: 30,
+    });
+  });
 });

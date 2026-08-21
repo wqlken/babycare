@@ -3,13 +3,14 @@ import { notFound } from "next/navigation";
 import { SevenDaySummary } from "@/components/dashboard/seven-day-summary";
 import { requireUser } from "@/lib/auth/guards";
 import { getChildSummaryData } from "@/lib/dashboard";
-import type { DaySummary } from "@/lib/summaries";
+import { hasSummaryRecords, type DaySummary } from "@/lib/summaries";
 import { addDays, toLocalDateString } from "@/lib/time";
 
 type PageProps = {
   params: Promise<{ childId: string }>;
   searchParams?: Promise<{
     endDate?: string;
+    includeEmpty?: string;
     startDate?: string;
   }>;
 };
@@ -35,18 +36,22 @@ function countInclusiveDays(startDate: string, endDate: string) {
 type NormalizedDateRange = {
   endDate: string;
   error?: string;
+  includeEmpty: boolean;
   startDate: string;
 };
 
 function normalizeDateRange(query?: {
   endDate?: string;
+  includeEmpty?: string;
   startDate?: string;
 }): NormalizedDateRange {
   const today = toLocalDateString(new Date(), "Asia/Shanghai");
   const defaultStartDate = addDays(today, -6);
+  const includeEmpty = query?.includeEmpty === "1";
   const defaultRange = {
     startDate: defaultStartDate,
     endDate: today,
+    includeEmpty,
   };
 
   if (!query?.startDate && !query?.endDate) {
@@ -74,6 +79,7 @@ function normalizeDateRange(query?: {
     return {
       startDate: addDays(endDate, -(MAX_SUMMARY_DAYS - 1)),
       endDate,
+      includeEmpty,
       error: "当前最多支持查看 31 天，已按结束日期显示最近 31 天。",
     };
   }
@@ -81,6 +87,7 @@ function normalizeDateRange(query?: {
   return {
     startDate,
     endDate,
+    includeEmpty,
   };
 }
 
@@ -98,6 +105,7 @@ function buildRangeTotals(summaries: DaySummary[]) {
       feedingCount: total.feedingCount + summary.feedingCount,
       bottleCount: total.bottleCount + summary.bottleCount,
       breastCount: total.breastCount + summary.breastCount,
+      breastMinutes: total.breastMinutes + summary.breastMinutes,
       bottleMl: total.bottleMl + summary.bottleMl,
       diaperCount: total.diaperCount + summary.diaperCount,
       sleepMinutes: total.sleepMinutes + summary.sleepMinutes,
@@ -106,6 +114,7 @@ function buildRangeTotals(summaries: DaySummary[]) {
       feedingCount: 0,
       bottleCount: 0,
       breastCount: 0,
+      breastMinutes: 0,
       bottleMl: 0,
       diaperCount: 0,
       sleepMinutes: 0,
@@ -127,6 +136,9 @@ export default async function SummaryPage({ params, searchParams }: PageProps) {
   }
 
   const totals = buildRangeTotals(data.summaries);
+  const visibleSummaries = range.includeEmpty
+    ? data.summaries
+    : data.summaries.filter(hasSummaryRecords);
 
   return (
     <section className="space-y-6">
@@ -151,7 +163,7 @@ export default async function SummaryPage({ params, searchParams }: PageProps) {
       </div>
 
       <form
-        className="grid gap-3 rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] p-4 shadow-sm sm:grid-cols-[1fr_1fr_auto]"
+        className="grid gap-3 rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] p-4 shadow-sm sm:grid-cols-[1fr_1fr_auto] lg:grid-cols-[1fr_1fr_auto_auto]"
         method="get"
       >
         <label className="block">
@@ -173,6 +185,16 @@ export default async function SummaryPage({ params, searchParams }: PageProps) {
             required
             type="date"
           />
+        </label>
+        <label className="flex min-h-11 items-center gap-2 self-end rounded border border-[var(--border-soft)] px-3 text-sm font-medium text-[#766e66]">
+          <input
+            className="size-4 accent-[var(--primary)]"
+            defaultChecked={range.includeEmpty}
+            name="includeEmpty"
+            type="checkbox"
+            value="1"
+          />
+          显示无记录日期
         </label>
         <button className="bc-focus-ring min-h-11 self-end rounded bg-[var(--primary)] px-5 text-sm font-semibold text-white">
           查看汇总
@@ -215,10 +237,16 @@ export default async function SummaryPage({ params, searchParams }: PageProps) {
         </div>
       </div>
 
-      <SevenDaySummary
-        summaries={data.summaries}
-        title={`${range.startDate} 至 ${range.endDate}`}
-      />
+      {visibleSummaries.length > 0 ? (
+        <SevenDaySummary
+          summaries={visibleSummaries}
+          title={`${range.startDate} 至 ${range.endDate}`}
+        />
+      ) : (
+        <p className="rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] p-4 text-sm text-[#766e66] shadow-sm">
+          该时间范围内还没有记录。
+        </p>
+      )}
     </section>
   );
 }

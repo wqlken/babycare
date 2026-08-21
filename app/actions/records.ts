@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { buildTimelineRedirectPath } from "@/app/actions/timeline-redirect";
 import { requireUser } from "@/lib/auth/guards";
 import { deleteRecord } from "@/lib/records/service";
 
@@ -16,8 +17,8 @@ export async function deleteRecordAction(formData: FormData) {
   });
 
   if (!result.ok) {
-    redirect(`/children/${childId}/timeline?error=${encodeURIComponent(result.error)}`);
+    redirect(buildTimelineRedirectPath(childId, formData, result.error));
   }
 
-  redirect(`/children/${childId}/timeline`);
+  redirect(buildTimelineRedirectPath(childId, formData));
 }

@@ -5,6 +5,7 @@ export type TimelineItem = {
   time: Date;
   displayStartTime: Date;
   displayEndTime?: Date | null;
+  durationMinutes?: number;
   feedingType?: "breast" | "bottle";
   breastSide?: "left" | "right" | "both" | "unknown" | null;
   bottleContent?: "formula" | "expressed_breast_milk" | "mixed" | "other" | "unknown" | null;
@@ -81,11 +82,18 @@ function feedingTitle(feeding: FeedingInput) {
   return side ? `母乳 ${side}` : "母乳";
 }
 
+function durationMinutes(start: Date, end: Date) {
+  return Math.max(0, Math.floor((end.getTime() - start.getTime()) / 60_000));
+}
+
 export function buildTimelineItems(input: {
   feedings: FeedingInput[];
   diapers: DiaperInput[];
   sleeps: SleepInput[];
+  now?: Date;
 }): TimelineItem[] {
+  const now = input.now ?? new Date();
+
   return [
     ...input.feedings.map((feeding) => ({
       id: feeding.id,
@@ -94,6 +102,10 @@ export function buildTimelineItems(input: {
       time: feeding.endTime ?? feeding.startTime,
       displayStartTime: feeding.startTime,
       displayEndTime: feeding.type === "breast" ? feeding.endTime : undefined,
+      durationMinutes:
+        feeding.type === "breast"
+          ? durationMinutes(feeding.startTime, feeding.endTime ?? now)
+          : undefined,
       feedingType: feeding.type,
       breastSide: feeding.breastSide,
       bottleContent: feeding.bottleContent,

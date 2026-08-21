@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { buildTimelineRedirectPath } from "@/app/actions/timeline-redirect";
 import { requireUser } from "@/lib/auth/guards";
 import {
   createBottleFeeding,
@@ -116,9 +117,11 @@ export async function updateBottleFeedingAction(formData: FormData) {
     amountMl = parseMilkVolumeToMl(String(formData.get("amount") ?? ""), milkUnit);
   } catch (error) {
     redirect(
-      `/children/${childId}/timeline?error=${encodeURIComponent(
+      buildTimelineRedirectPath(
+        childId,
+        formData,
         error instanceof Error ? error.message : "奶量无效。",
-      )}`,
+      ),
     );
   }
 
@@ -132,10 +135,10 @@ export async function updateBottleFeedingAction(formData: FormData) {
   });
 
   if (!result.ok) {
-    redirect(`/children/${childId}/timeline?error=${encodeURIComponent(result.error)}`);
+    redirect(buildTimelineRedirectPath(childId, formData, result.error));
   }
 
-  redirect(`/children/${childId}/timeline`);
+  redirect(buildTimelineRedirectPath(childId, formData));
 }
 
 export async function updateFeedingRecordAction(formData: FormData) {
@@ -166,9 +169,11 @@ export async function updateFeedingRecordAction(formData: FormData) {
     }
   } catch (error) {
     redirect(
-      `/children/${childId}/timeline?error=${encodeURIComponent(
+      buildTimelineRedirectPath(
+        childId,
+        formData,
         error instanceof Error ? error.message : "记录信息无效。",
-      )}`,
+      ),
     );
   }
 
@@ -186,8 +191,8 @@ export async function updateFeedingRecordAction(formData: FormData) {
   });
 
   if (!result.ok) {
-    redirect(`/children/${childId}/timeline?error=${encodeURIComponent(result.error)}`);
+    redirect(buildTimelineRedirectPath(childId, formData, result.error));
   }
 
-  redirect(`/children/${childId}/timeline`);
+  redirect(buildTimelineRedirectPath(childId, formData));
 }

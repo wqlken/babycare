@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { buildTimelineRedirectPath } from "@/app/actions/timeline-redirect";
 import { requireUser } from "@/lib/auth/guards";
 import { startSleep, stopSleep, updateSleepRecord } from "@/lib/records/service";
 import { parseRecordDateTimeInput } from "@/lib/time";
@@ -71,9 +72,11 @@ export async function updateSleepRecordAction(formData: FormData) {
       : null;
   } catch (error) {
     redirect(
-      `/children/${childId}/timeline?error=${encodeURIComponent(
+      buildTimelineRedirectPath(
+        childId,
+        formData,
         error instanceof Error ? error.message : "记录时间无效。",
-      )}`,
+      ),
     );
   }
 
@@ -87,8 +90,8 @@ export async function updateSleepRecordAction(formData: FormData) {
   });
 
   if (!result.ok) {
-    redirect(`/children/${childId}/timeline?error=${encodeURIComponent(result.error)}`);
+    redirect(buildTimelineRedirectPath(childId, formData, result.error));
   }
 
-  redirect(`/children/${childId}/timeline`);
+  redirect(buildTimelineRedirectPath(childId, formData));
 }

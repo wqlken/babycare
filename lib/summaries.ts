@@ -26,6 +26,7 @@ export type DaySummary = {
   feedingCount: number;
   bottleCount: number;
   breastCount: number;
+  breastMinutes: number;
   bottleMl: number;
   diaperCount: number;
   sleepMinutes: number;
@@ -52,6 +53,14 @@ function isWithinRange(date: Date, start: Date, end: Date) {
   return date >= start && date < end;
 }
 
+export function hasSummaryRecords(summary: DaySummary) {
+  return (
+    summary.feedingCount > 0 ||
+    summary.diaperCount > 0 ||
+    summary.sleepMinutes > 0
+  );
+}
+
 export function summarizeDay(input: SummaryInput): DaySummary {
   const timezone = input.timezone ?? "Asia/Shanghai";
   const range = getLocalDayRange(input.date, timezone);
@@ -62,6 +71,20 @@ export function summarizeDay(input: SummaryInput): DaySummary {
   const diapers = input.diapers.filter((diaper) =>
     isWithinRange(diaper.time, range.start, range.end),
   );
+  const breastMinutes = input.feedings.reduce((total, feeding) => {
+    if (feeding.type !== "breast" || !feeding.endTime) {
+      return total;
+    }
+
+    const split = splitDurationByLocalDay({
+      start: feeding.startTime,
+      end: feeding.endTime,
+      timezone,
+    });
+    const dayPart = split.find((part) => part.date === input.date);
+
+    return total + (dayPart?.minutes ?? 0);
+  }, 0);
   const sleepMinutes = input.sleeps.reduce((total, sleep) => {
     if (!sleep.endTime) {
       return total;
@@ -82,6 +105,7 @@ export function summarizeDay(input: SummaryInput): DaySummary {
     feedingCount: feedings.length,
     bottleCount: feedings.filter((feeding) => feeding.type === "bottle").length,
     breastCount: feedings.filter((feeding) => feeding.type === "breast").length,
+    breastMinutes,
     bottleMl: feedings.reduce(
       (total, feeding) => total + (feeding.amountMl ?? 0),
       0,
