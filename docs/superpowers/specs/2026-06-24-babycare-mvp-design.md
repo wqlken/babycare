@@ -74,6 +74,8 @@ The Next.js application will serve both the UI and the backend behavior. Form-or
 
 V1 authentication uses email and password login. Email verification and self-service password reset are out of scope for the first release. Registration uses a bootstrap-plus-invite model: if the system has no users, the first registered user becomes the owner of the first family workspace; after that, registration requires a valid invitation token.
 
+Authenticated web sessions use signed, HTTP-only cookies. The default family-use session lifetime is 180 days so trusted household devices do not need to log in repeatedly. `AUTH_SECRET` signs the cookie payload and must remain stable across deployments. Password reset and session revocation continue to invalidate older cookies through `sessionRevokedAt`.
+
 The V1 through V1.2 product phases do not provide a public REST API, API tokens, MCP server, mobile-app API, or third-party integration surface. All user operations are performed through authenticated web sessions.
 
 Docker Compose will run:
@@ -165,7 +167,7 @@ Roles:
 - `owner`: manage children, invite members, remove members, and delete records.
 - `caregiver`: view all records, create records, and edit records they created.
 
-Owners may edit and soft-delete all records. Caregivers may edit only records they created and may not delete records in the first release. Record deletion should be owner-only to reduce accidental data loss. Every record should show the creator so family members can see who logged it.
+Owners may edit and soft-delete all records. Caregivers may edit and soft-delete records they created. Delete actions should require an explicit confirmation to reduce accidental data loss. Every record should show the creator so family members can see who logged it.
 
 Invitations must be bound to an invited email address. A token may only be accepted by a user with the same email address, after login or registration. V1 does not need to send invitation emails; the owner can copy the generated invitation link and share it manually.
 
@@ -242,7 +244,7 @@ The first implementation should include focused tests around data access and sum
 Required environment variables:
 
 - `DATABASE_URL`: PostgreSQL connection string.
-- `AUTH_SECRET`: authentication/session secret.
+- `AUTH_SECRET`: authentication/session signing secret. Keep this value stable across deployments or existing login cookies will become invalid.
 - `APP_URL`: canonical application URL.
 
 Do not commit `.env` files, database volumes, or backups. Provide `.env.example`.

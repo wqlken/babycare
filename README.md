@@ -19,7 +19,8 @@ Babycare is a self-hosted family baby tracking app for feeding, diapers, and sle
 - Diaper records support optional stool color and consistency details.
 - High-frequency record forms keep details visible instead of hiding fields behind collapsed sections.
 - Breastfeeding and sleep support start/stop timer flows.
-- Timeline shows recent records, notes, creator names, owner delete controls, and bottle feeding edit controls.
+- Timeline shows recent records, notes, creator names, compact edit controls for feeding, diaper, and sleep records, and delete controls for owners or record creators.
+- Login state uses a signed, HTTP-only cookie with a 180-day lifetime for family-friendly long-lived sessions.
 - Account settings support display name, email, password, and milk unit preference updates.
 
 ## Application Routes
@@ -40,7 +41,7 @@ Babycare is a self-hosted family baby tracking app for feeding, diapers, and sle
 ## Docker
 
 1. Copy `.env.example` to `.env`.
-2. Update `AUTH_SECRET` with a strong random value.
+2. Update `AUTH_SECRET` with a strong random value. Keep this value stable across deployments because it signs login cookies.
 3. Set `APP_URL` to the LAN or public URL, for example `http://localhost:3000`.
 4. Start the stack:
 
