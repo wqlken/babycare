@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { stopBreastfeedingAction } from "@/app/actions/feedings";
 import { stopSleepAction } from "@/app/actions/sleep";
 
@@ -7,11 +10,15 @@ type ActiveTimersProps = {
   activeSleep: { startTime: Date } | null;
 };
 
-function since(startTime: Date) {
+export function formatElapsedDuration(startTime: Date, now: Date) {
   const minutes = Math.max(
     0,
-    Math.round((Date.now() - startTime.getTime()) / 60_000),
+    Math.floor((now.getTime() - startTime.getTime()) / 60_000),
   );
+
+  if (minutes === 0) {
+    return "不足1分钟";
+  }
 
   if (minutes < 60) {
     return `${minutes}分钟`;
@@ -20,11 +27,27 @@ function since(startTime: Date) {
   return `${Math.floor(minutes / 60)}小时${minutes % 60}分钟`;
 }
 
+function useCurrentTime() {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return now;
+}
+
 export function ActiveTimers({
   childId,
   activeBreastfeeding,
   activeSleep,
 }: ActiveTimersProps) {
+  const now = useCurrentTime();
+
   if (!activeBreastfeeding && !activeSleep) {
     return null;
   }
@@ -37,7 +60,7 @@ export function ActiveTimers({
             母乳进行中
           </p>
           <p className="mt-1 text-[var(--foreground)]">
-            已开始 {since(activeBreastfeeding.startTime)}
+            已开始 {formatElapsedDuration(activeBreastfeeding.startTime, now)}
           </p>
           <form action={stopBreastfeedingAction} className="mt-3">
             <input name="childId" type="hidden" value={childId} />
@@ -53,7 +76,7 @@ export function ActiveTimers({
             睡眠进行中
           </p>
           <p className="mt-1 text-[var(--foreground)]">
-            已开始 {since(activeSleep.startTime)}
+            已开始 {formatElapsedDuration(activeSleep.startTime, now)}
           </p>
           <form action={stopSleepAction} className="mt-3">
             <input name="childId" type="hidden" value={childId} />
