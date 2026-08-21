@@ -66,6 +66,24 @@ function diaperLabel(type: "wet" | "dirty" | "both") {
   return "都有";
 }
 
+function feedingLabel(feeding: {
+  type: "breast" | "bottle";
+  startTime: Date;
+  endTime?: Date | null;
+}, timezone: string) {
+  const start = formatTime(feeding.startTime, timezone);
+
+  if (feeding.type === "bottle") {
+    return `${start} 瓶喂`;
+  }
+
+  if (feeding.endTime) {
+    return `${start}-${formatTime(feeding.endTime, timezone)} 母乳`;
+  }
+
+  return `${start} 开始 母乳`;
+}
+
 export function buildDayRhythm(input: {
   date: string;
   timezone?: string;
@@ -99,7 +117,7 @@ export function buildDayRhythm(input: {
     markers.push({
       id: feeding.id,
       percent: percentOfDay(feeding.startTime, range.start),
-      label: `${formatTime(feeding.startTime, timezone)} 喂养`,
+      label: feedingLabel(feeding, timezone),
       kind: "feeding",
       value:
         feeding.type === "bottle" && feeding.amountMl

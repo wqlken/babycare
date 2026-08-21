@@ -28,7 +28,7 @@ describe("day rhythm helper", () => {
       {
         id: "feeding-1",
         percent: 58.33,
-        label: "14:00 喂养",
+        label: "14:00 瓶喂",
         kind: "feeding",
         value: "120 ml",
       },
@@ -38,6 +38,34 @@ describe("day rhythm helper", () => {
         label: "16:00 便便",
         kind: "diaper",
       },
+    ]);
+  });
+
+  test("formats breastfeeding markers with time ranges", () => {
+    const rhythm = buildDayRhythm({
+      date: "2026-06-25",
+      timezone: "Asia/Shanghai",
+      feedings: [
+        {
+          id: "breast-1",
+          type: "breast",
+          startTime: new Date("2026-06-25T01:00:00.000Z"),
+          endTime: new Date("2026-06-25T01:20:00.000Z"),
+        },
+        {
+          id: "breast-active",
+          type: "breast",
+          startTime: new Date("2026-06-25T02:00:00.000Z"),
+          endTime: null,
+        },
+      ],
+      diapers: [],
+      sleeps: [],
+    });
+
+    expect(rhythm.markers.map((marker) => marker.label)).toEqual([
+      "09:00-09:20 母乳",
+      "10:00 开始 母乳",
     ]);
   });
 

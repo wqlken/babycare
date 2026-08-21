@@ -8,9 +8,37 @@ function markerTitle(marker: DayRhythm["markers"][number]) {
   return `${marker.label}${marker.value ? ` ${marker.value}` : ""}`;
 }
 
+function markerStyle(percent: number) {
+  const safePercent = Math.min(100, Math.max(0, percent));
+  let transform = "translateX(-50%)";
+
+  if (safePercent <= 3) {
+    transform = "translateX(0)";
+  } else if (safePercent >= 97) {
+    transform = "translateX(-100%)";
+  }
+
+  return {
+    left: `${safePercent}%`,
+    transform,
+  };
+}
+
 export function DayRhythmChart({ rhythm }: DayRhythmChartProps) {
   const hasRecords =
     rhythm.sleepSegments.length > 0 || rhythm.markers.length > 0;
+  const details = [
+    ...rhythm.sleepSegments.map((segment) => ({
+      id: `sleep-${segment.id}`,
+      label: segment.label,
+      percent: segment.startPercent,
+    })),
+    ...rhythm.markers.map((marker) => ({
+      id: `marker-${marker.id}`,
+      label: `${marker.label}${marker.value ? ` · ${marker.value}` : ""}`,
+      percent: marker.percent,
+    })),
+  ].sort((left, right) => left.percent - right.percent);
 
   return (
     <section className="space-y-3">
@@ -22,7 +50,7 @@ export function DayRhythmChart({ rhythm }: DayRhythmChartProps) {
           睡眠、喂养和尿布记录按 24 小时排列。
         </p>
       </div>
-      <div className="bc-card overflow-hidden p-4">
+      <div className="bc-card overflow-visible p-4">
         <div className="relative min-h-32 rounded-lg bg-[var(--surface-muted)] p-3">
           <div className="absolute inset-x-3 top-1/2 h-px bg-[var(--border-soft)]" />
           {rhythm.sleepSegments.map((segment) => (
@@ -40,9 +68,9 @@ export function DayRhythmChart({ rhythm }: DayRhythmChartProps) {
           ))}
           {rhythm.markers.map((marker) => (
             <div
-              className="absolute top-16 -translate-x-1/2 text-center"
+              className="absolute top-16 text-center"
               key={marker.id}
-              style={{ left: `${marker.percent}%` }}
+              style={markerStyle(marker.percent)}
             >
               <div
                 aria-label={markerTitle(marker)}
@@ -71,14 +99,8 @@ export function DayRhythmChart({ rhythm }: DayRhythmChartProps) {
         </div>
         {hasRecords ? (
           <ul className="mt-4 space-y-1 text-sm text-[var(--text-muted)]">
-            {rhythm.sleepSegments.slice(0, 3).map((segment) => (
-              <li key={segment.id}>{segment.label}</li>
-            ))}
-            {rhythm.markers.slice(0, 5).map((marker) => (
-              <li key={marker.id}>
-                {marker.label}
-                {marker.value ? ` · ${marker.value}` : ""}
-              </li>
+            {details.map((detail) => (
+              <li key={detail.id}>{detail.label}</li>
             ))}
           </ul>
         ) : (
