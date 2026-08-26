@@ -42,7 +42,7 @@ export async function createBottleFeedingAction(formData: FormData) {
   const result = await createBottleFeeding(user.id, {
     childId,
     amountMl,
-    bottleContent: String(formData.get("bottleContent") ?? "unknown"),
+    bottleContent: String(formData.get("bottleContent") ?? "formula"),
     eventTime,
     notes: String(formData.get("notes") ?? ""),
   });

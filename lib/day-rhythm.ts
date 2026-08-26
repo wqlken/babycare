@@ -84,6 +84,38 @@ function feedingLabel(feeding: {
   return `${start} 开始 母乳`;
 }
 
+function formatDuration(minutes: number) {
+  if (minutes < 1) return "不足1分钟";
+
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+
+  if (hours === 0) return `${rest}分钟`;
+  return rest ? `${hours}小时${rest}分钟` : `${hours}小时`;
+}
+
+function feedingValue(feeding: {
+  type: "breast" | "bottle";
+  startTime: Date;
+  endTime?: Date | null;
+  amountMl?: number | null;
+}) {
+  if (feeding.type === "bottle") {
+    return feeding.amountMl ? `${feeding.amountMl} ml` : undefined;
+  }
+
+  if (!feeding.endTime) {
+    return "进行中";
+  }
+
+  const minutes = Math.floor(
+    Math.max(0, feeding.endTime.getTime() - feeding.startTime.getTime()) /
+      60_000,
+  );
+
+  return formatDuration(minutes);
+}
+
 export function buildDayRhythm(input: {
   date: string;
   timezone?: string;
@@ -119,10 +151,7 @@ export function buildDayRhythm(input: {
       percent: percentOfDay(feeding.startTime, range.start),
       label: feedingLabel(feeding, timezone),
       kind: "feeding",
-      value:
-        feeding.type === "bottle" && feeding.amountMl
-          ? `${feeding.amountMl} ml`
-          : undefined,
+      value: feedingValue(feeding),
     });
   }
 

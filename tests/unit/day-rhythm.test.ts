@@ -41,7 +41,7 @@ describe("day rhythm helper", () => {
     ]);
   });
 
-  test("formats breastfeeding markers with time ranges", () => {
+  test("formats breastfeeding markers with time ranges and duration values", () => {
     const rhythm = buildDayRhythm({
       date: "2026-06-25",
       timezone: "Asia/Shanghai",
@@ -63,9 +63,17 @@ describe("day rhythm helper", () => {
       sleeps: [],
     });
 
-    expect(rhythm.markers.map((marker) => marker.label)).toEqual([
-      "09:00-09:20 母乳",
-      "10:00 开始 母乳",
+    expect(rhythm.markers).toMatchObject([
+      {
+        id: "breast-1",
+        label: "09:00-09:20 母乳",
+        value: "20分钟",
+      },
+      {
+        id: "breast-active",
+        label: "10:00 开始 母乳",
+        value: "进行中",
+      },
     ]);
   });
 

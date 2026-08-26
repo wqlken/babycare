@@ -62,7 +62,7 @@ export function FeedingForm({
           <span className="bc-label">内容</span>
           <select
             className="bc-input bc-focus-ring"
-            defaultValue="unknown"
+            defaultValue="formula"
             name="bottleContent"
           >
             <option value="unknown">未指定</option>
