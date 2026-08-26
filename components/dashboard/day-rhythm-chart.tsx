@@ -82,11 +82,6 @@ export function DayRhythmChart({ rhythm }: DayRhythmChartProps) {
                 role="img"
                 title={markerTitle(marker)}
               />
-              {marker.value ? (
-                <p className="mt-1 whitespace-nowrap text-[10px] text-[var(--text-muted)]">
-                  {marker.value}
-                </p>
-              ) : null}
             </div>
           ))}
           <div className="absolute inset-x-3 bottom-2 flex justify-between text-[10px] text-[var(--text-muted)]">
