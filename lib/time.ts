@@ -176,16 +176,83 @@ export function splitDurationByLocalDay(input: {
   return result;
 }
 
-export function formatChildAge(input: { birthday: Date; now?: Date }) {
-  const now = input.now ?? new Date();
-  const days = Math.max(
-    0,
-    Math.floor((now.getTime() - input.birthday.getTime()) / 86_400_000),
-  );
+type DateOnlyParts = {
+  year: number;
+  month: number;
+  day: number;
+};
 
-  if (days < 60) {
+function compareDateOnly(left: DateOnlyParts, right: DateOnlyParts) {
+  if (left.year !== right.year) return left.year - right.year;
+  if (left.month !== right.month) return left.month - right.month;
+  return left.day - right.day;
+}
+
+function daysInMonth(year: number, month: number) {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+function addCalendarMonths(date: DateOnlyParts, months: number): DateOnlyParts {
+  const monthIndex = date.month - 1 + months;
+  const year = date.year + Math.floor(monthIndex / 12);
+  const month = ((monthIndex % 12) + 12) % 12 + 1;
+  const day = Math.min(date.day, daysInMonth(year, month));
+
+  return { year, month, day };
+}
+
+function daysBetweenDates(start: DateOnlyParts, end: DateOnlyParts) {
+  const startUtc = Date.UTC(start.year, start.month - 1, start.day);
+  const endUtc = Date.UTC(end.year, end.month - 1, end.day);
+
+  return Math.max(0, Math.round((endUtc - startUtc) / 86_400_000));
+}
+
+function toDateOnlyParts(date: Date, timezone: string): DateOnlyParts {
+  const parts = getDateParts(date, timezone);
+
+  return {
+    year: parts.year,
+    month: parts.month,
+    day: parts.day,
+  };
+}
+
+export function formatChildAge(input: {
+  birthday: Date;
+  now?: Date;
+  timezone?: string;
+}) {
+  const timezone = input.timezone ?? "Asia/Shanghai";
+  const now = input.now ?? new Date();
+  const birthday = toDateOnlyParts(input.birthday, timezone);
+  const today = toDateOnlyParts(now, timezone);
+
+  if (compareDateOnly(today, birthday) <= 0) {
+    return "今天出生";
+  }
+
+  let months =
+    (today.year - birthday.year) * 12 + (today.month - birthday.month);
+  let anchor = addCalendarMonths(birthday, months);
+
+  if (compareDateOnly(anchor, today) > 0) {
+    months -= 1;
+    anchor = addCalendarMonths(birthday, months);
+  }
+
+  const days = daysBetweenDates(anchor, today);
+
+  if (months === 0) {
     return `${days}天`;
   }
 
-  return `${Math.floor(days / 30)}个月`;
+  if (months < 24) {
+    return days > 0 ? `${months}个月${days}天` : `${months}个月`;
+  }
+
+  const years = Math.floor(months / 12);
+  const restMonths = months % 12;
+
+  return restMonths > 0 ? `${years}岁${restMonths}个月` : `${years}岁`;
 }

@@ -28,20 +28,52 @@ describe("time helpers", () => {
     ]);
   });
 
-  test("formats child age by days first, then months", () => {
+  test("formats child age by completed calendar months and remaining days", () => {
     expect(
       formatChildAge({
-        birthday: new Date("2026-06-01T00:00:00.000Z"),
-        now: new Date("2026-06-25T00:00:00.000Z"),
+        birthday: new Date("2026-07-26T00:00:00.000Z"),
+        now: new Date("2026-08-24T00:00:00.000Z"),
       }),
-    ).toBe("24天");
+    ).toBe("29天");
 
     expect(
       formatChildAge({
-        birthday: new Date("2026-01-01T00:00:00.000Z"),
-        now: new Date("2026-06-25T00:00:00.000Z"),
+        birthday: new Date("2026-07-26T00:00:00.000Z"),
+        now: new Date("2026-08-26T00:00:00.000Z"),
       }),
-    ).toBe("5个月");
+    ).toBe("1个月");
+
+    expect(
+      formatChildAge({
+        birthday: new Date("2026-07-26T00:00:00.000Z"),
+        now: new Date("2026-08-27T00:00:00.000Z"),
+      }),
+    ).toBe("1个月1天");
+  });
+
+  test("formats same-day and older child ages", () => {
+    expect(
+      formatChildAge({
+        birthday: new Date("2026-08-26T00:00:00.000Z"),
+        now: new Date("2026-08-26T08:00:00.000Z"),
+      }),
+    ).toBe("今天出生");
+
+    expect(
+      formatChildAge({
+        birthday: new Date("2024-05-20T00:00:00.000Z"),
+        now: new Date("2026-08-26T00:00:00.000Z"),
+      }),
+    ).toBe("2岁3个月");
+  });
+
+  test("treats month-end birthdays as full months on the next month end", () => {
+    expect(
+      formatChildAge({
+        birthday: new Date("2026-01-31T00:00:00.000Z"),
+        now: new Date("2026-02-28T00:00:00.000Z"),
+      }),
+    ).toBe("1个月");
   });
 
   test("parses record datetime-local input in the family timezone", () => {

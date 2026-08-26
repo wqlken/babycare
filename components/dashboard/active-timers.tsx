@@ -62,8 +62,21 @@ export function ActiveTimers({
           <p className="mt-1 text-[var(--foreground)]">
             已开始 {formatElapsedDuration(activeBreastfeeding.startTime, now)}
           </p>
-          <form action={stopBreastfeedingAction} className="mt-3">
+          <form action={stopBreastfeedingAction} className="mt-3 space-y-3">
             <input name="childId" type="hidden" value={childId} />
+            <label className="block">
+              <span className="bc-label">本次喂养侧别</span>
+              <select
+                className="bc-input bc-focus-ring mt-2"
+                defaultValue="unknown"
+                name="breastSide"
+              >
+                <option value="unknown">未指定</option>
+                <option value="left">左侧</option>
+                <option value="right">右侧</option>
+                <option value="both">两侧</option>
+              </select>
+            </label>
             <button className="bc-focus-ring min-h-12 rounded-lg bg-[var(--accent-feeding-strong)] px-4 py-3 text-sm font-medium text-white">
               结束母乳
             </button>

@@ -429,11 +429,19 @@ describe("record creation", () => {
         "user-1",
         {
           childId: "child-1",
+          breastSide: "both",
           endTime: new Date("2026-06-25T01:20:00.000Z"),
         },
         db,
       ),
     ).resolves.toEqual({ ok: true, recordId: "feeding-1" });
+    expect(db.feedingRecord.update).toHaveBeenCalledWith({
+      where: { id: "feeding-1" },
+      data: expect.objectContaining({
+        breastSide: "both",
+        endTime: new Date("2026-06-25T01:20:00.000Z"),
+      }),
+    });
   });
 
   test("creates a diaper record", async () => {

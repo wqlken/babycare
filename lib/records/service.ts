@@ -512,6 +512,7 @@ export async function stopBreastfeeding(
   userId: string,
   input: {
     childId: string;
+    breastSide?: string | null;
     endTime: Date;
   },
   db: RecordsDatabase = prisma,
@@ -535,6 +536,7 @@ export async function stopBreastfeeding(
   const record = await db.feedingRecord.update({
     where: { id: active.id },
     data: {
+      breastSide: cleanBreastSide(input.breastSide),
       endTime: input.endTime,
       updatedById: context.user.id,
     },

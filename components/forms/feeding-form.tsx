@@ -93,6 +93,7 @@ export function FeedingForm({
       </form>
       <form action={startBreastfeedingAction} className="space-y-4">
         <input name="childId" type="hidden" value={childId} />
+        <input name="breastSide" type="hidden" value="unknown" />
         <h2 className="text-xl font-semibold text-[var(--foreground)]">
           开始母乳计时
         </h2>
@@ -107,16 +108,6 @@ export function FeedingForm({
             type="datetime-local"
           />
         </label>
-        <select
-          className="bc-input bc-focus-ring"
-          name="breastSide"
-          defaultValue="unknown"
-        >
-          <option value="unknown">未指定</option>
-          <option value="left">左侧</option>
-          <option value="right">右侧</option>
-          <option value="both">两侧</option>
-        </select>
         <button className="bc-focus-ring flex min-h-14 w-full items-center justify-center gap-2 rounded-lg bg-[var(--accent-feeding)] px-4 py-4 text-lg font-semibold text-white shadow-sm">
           <Milk aria-hidden="true" size={24} />
           开始母乳

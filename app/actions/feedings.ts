@@ -95,6 +95,7 @@ export async function stopBreastfeedingAction(formData: FormData) {
   const childId = String(formData.get("childId") ?? "");
   const result = await stopBreastfeeding(user.id, {
     childId,
+    breastSide: String(formData.get("breastSide") ?? "unknown"),
     endTime: new Date(),
   });
 
