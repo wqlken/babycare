@@ -15,7 +15,8 @@
 - Phase V1.1 is implemented on `main`.
 - Phase V1.2 is implemented on `main`.
 - Post-v1.2 UI polish is implemented on `main`.
-- Post-v1.2 record-entry polish is in progress on `feat/editable-record-time`: editable local record/start times, visible high-frequency details instead of collapsed sections, and return-home shortcuts.
+- Post-v1.2 record-entry polish is implemented on `main`: editable local record/start times, visible high-frequency details instead of collapsed sections, and return-home shortcuts.
+- Post-v1.2 growth tracking V1 is implemented: weight and length/height records, a growth page, latest-value cards, basic trend curves, and focused tests. Official standard reference curves and risk assessment are deferred.
 - Latest verified commands on `main`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
 
 ---
@@ -38,6 +39,7 @@ app/
     children/[childId]/diapers/new/page.tsx
     children/[childId]/sleep/page.tsx
     children/[childId]/timeline/page.tsx
+    children/[childId]/growth/page.tsx
     settings/account/page.tsx
     settings/family/page.tsx
   actions/
@@ -46,6 +48,7 @@ app/
     feedings.ts
     diapers.ts
     sleep.ts
+    growth.ts
     family.ts
     exports.ts
   api/export/[childId]/route.ts
@@ -59,6 +62,9 @@ components/
     summary-cards.tsx
     quick-actions.tsx
     seven-day-summary.tsx
+  growth/
+    growth-chart.tsx
+    growth-record-form.tsx
   forms/
     feeding-form.tsx
     diaper-form.tsx
@@ -73,6 +79,7 @@ lib/
   units.ts
   summaries.ts
   csv.ts
+  growth/service.ts
 prisma/
   schema.prisma
   migrations/
@@ -89,6 +96,7 @@ tests/
     permissions.test.ts
     records.test.ts
     exports.test.ts
+    growth.test.ts
 docker-compose.yml
 Dockerfile
 .env.example
@@ -920,3 +928,37 @@ Known sequencing constraints:
 - V1.1 and V1.2 tasks should not start until V1 passes build and core integration tests.
 
 No intentional incomplete sections remain. If implementation discovers framework-generated path differences, preserve the responsibilities above and update paths consistently.
+
+---
+
+## Post-v1.2 Growth Tracking V1
+
+### Task 17: Height and Weight Records
+
+**Files:**
+- Modify: `prisma/schema.prisma`
+- Create: `prisma/migrations/000005_growth_records/migration.sql`
+- Create: `lib/growth/service.ts`
+- Create: `app/actions/growth.ts`
+- Create: `app/(app)/children/[childId]/growth/page.tsx`
+- Create: `components/growth/growth-record-form.tsx`
+- Create: `components/growth/growth-chart.tsx`
+- Modify: `components/dashboard/quick-actions.tsx`
+- Modify: `components/app-shell.tsx`
+- Test: `tests/integration/growth.test.ts`
+- Test: `tests/integration/schema.test.ts`
+
+- [x] Add `GrowthRecord` with measured time, optional `weightKg`, optional `lengthCm`, notes, creator snapshot, update metadata, and soft-delete fields.
+- [x] Add a migration for the growth record table and indexes.
+- [x] Add family-access checked service functions for creating and reading growth records.
+- [x] Add a Server Action for growth record creation with timezone parsing and value validation.
+- [x] Add a growth page with latest-value cards, a measurement form, weight curve, length/height curve, and recent measurement list.
+- [x] Add dashboard/top-nav access to the growth page.
+- [x] Add focused tests for schema coverage, create validation, soft-delete filtering, ordering, and latest measurement selection.
+- [x] Verify with `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
+
+Deferred follow-up:
+
+- [ ] Model official reference standard data from verified national standard source tables.
+- [ ] Add sex- and age-aware percentile/SD reference curves.
+- [ ] Add cautious assessment wording and export/report support after reference data is verified.

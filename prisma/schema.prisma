@@ -140,6 +140,7 @@ model Child {
   feedings    FeedingRecord[]
   diapers     DiaperRecord[]
   sleeps      SleepRecord[]
+  growthRecords GrowthRecord[]
   preferences UserPreference[]
 
   @@index([familyId])
@@ -208,5 +209,26 @@ model SleepRecord {
   child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
 
   @@index([childId, startTime])
+  @@index([creatorId])
+}
+
+model GrowthRecord {
+  id                 String   @id @default(cuid())
+  childId            String
+  creatorId          String
+  creatorDisplayName String
+  measuredAt         DateTime
+  weightKg           Float?
+  lengthCm           Float?
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  deletedAt          DateTime?
+  deletedById        String?
+  updatedById        String?
+
+  child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([childId, measuredAt])
   @@index([creatorId])
 }

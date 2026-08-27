@@ -42,6 +42,12 @@ export function AppShell({
                 </Link>
                 <Link
                   className="bc-focus-ring rounded border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--foreground)]"
+                  href={`/children/${currentChildId}/growth`}
+                >
+                  生长
+                </Link>
+                <Link
+                  className="bc-focus-ring rounded border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--foreground)]"
                   href={`/children/${currentChildId}`}
                 >
                   宝宝资料

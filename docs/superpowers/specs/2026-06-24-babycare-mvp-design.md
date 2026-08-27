@@ -19,6 +19,7 @@ Status as of 2026-07-02:
 - Post-v1.2 UI polish is implemented on `main`: the dashboard and high-frequency forms use a softer low-saturation palette, larger touch targets, a mixed-feeding overview, bottle trend visuals, and a date-range history summary view.
 - Post-v1.2 UI polish now includes tokenized light/dark themes, Lucide icons, mobile bottom navigation, conditional diaper detail display, and a compact daily rhythm visualization.
 - Post-v1.2 record-entry polish is implemented in the current follow-up branch: feeding, diaper, and sleep forms show editable local record/start times, high-frequency details stay visible instead of collapsed, and the app shell plus record forms provide a direct return-home shortcut.
+- Post-v1.2 growth tracking V1 is implemented: family members can record weight and length/height measurements, view latest values, and review basic family-data trend curves. National standard reference curves and risk assessment are intentionally deferred until the source standard data is modeled and verified.
 - Latest verified commands on `main`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`. Docker smoke testing was not run locally because Docker CLI is not installed in this environment.
 
 ### V1: Core Family Logging
@@ -64,7 +65,7 @@ V1.2 adds:
 - Creator display name snapshots.
 - Edited-state display in the timeline.
 
-All phases exclude solids, pumping, temperature, medicine, growth charts, AI chat, native mobile apps, offline writes, active notifications, public APIs, API tokens, MCP, third-party integrations, and advanced reports. These are planned for later product phases after the core workflow is stable.
+All phases exclude solids, pumping, temperature, medicine, AI chat, native mobile apps, offline writes, active notifications, public APIs, API tokens, MCP, third-party integrations, advanced reports, and medical growth assessment. These are planned for later product phases after the core workflow is stable.
 
 ## Technical Approach
 
@@ -95,6 +96,7 @@ Routes:
 - `/children`: child list and creation.
 - `/children/[childId]`: child details and settings.
 - `/children/[childId]/summary`: date-range summary review for feeding, bottle volume, diapers, and sleep.
+- `/children/[childId]/growth`: record height/weight measurements and review basic trend curves.
 - `/children/[childId]/feedings/new`: create a feeding record.
 - `/children/[childId]/diapers/new`: create a diaper record.
 - `/children/[childId]/sleep`: start, end, or backfill sleep.
@@ -108,7 +110,9 @@ The dashboard should be optimized for one-handed phone use. It should show time 
 
 Fast logging is a product acceptance criterion. Bottle and diaper records should be savable from the dashboard path with at most two user actions after choosing the action, using sensible defaults and visible fields rather than collapsed detail sections. Breastfeeding and sleep should support one action to start and one action to stop. New record forms should display the default local record or start time and allow it to be edited before saving, so delayed entries do not require later correction. Less common fields may move to later edit views if they make the primary form too long.
 
-Each user should have a `currentChildId` preference. The root dashboard uses the user's current child when available; otherwise it selects the first child in the family. All new record pages must show the selected child's name clearly and allow switching children before saving, to reduce accidental logging to the wrong child. The dashboard and child switcher should show the child's day age or month age based on birthday and the family timezone; growth charts remain out of scope for the initial product phases.
+Each user should have a `currentChildId` preference. The root dashboard uses the user's current child when available; otherwise it selects the first child in the family. All new record pages must show the selected child's name clearly and allow switching children before saving, to reduce accidental logging to the wrong child. The dashboard and child switcher should show the child's day age or month age based on birthday and the family timezone.
+
+Growth tracking V1 stores family-entered measurements and renders basic trend curves for weight and length/height. Measurement time defaults to the current local time and can be edited for retrospective entries. At least one of weight or length/height is required. The initial growth page must clearly present that it is a family record and trend view, not a medical diagnosis or standard-compliance assessment. Standard percentile/SD curves and feeding assessment guidance from national standards should be added only after reference tables are modeled from official sources and independently verified.
 
 The "time since last feeding" display should use the feeding completion time. For completed breastfeeding this is `endTime`; for bottle feeding this is the event or start time. If breastfeeding is currently active, the dashboard should show an active breastfeeding timer instead of a stale interval.
 
@@ -135,6 +139,7 @@ Core entities:
 - `FeedingRecord`: child, creator, creator display name snapshot, type, breast side, bottle content, start time, end time, amount in ml, notes, update metadata, soft deletion fields.
 - `DiaperRecord`: child, creator, creator display name snapshot, time, type, stool color, stool consistency, notes, update metadata, soft deletion fields.
 - `SleepRecord`: child, creator, creator display name snapshot, start time, end time, notes, update metadata, soft deletion fields.
+- `GrowthRecord`: child, creator, creator display name snapshot, measured time, optional weight in kilograms, optional length/height in centimeters, notes, update metadata, soft deletion fields.
 
 Feeding type values are `breast` and `bottle`. Breastfeeding records support `breastSide` values of `left`, `right`, `both`, and `unknown`. V1 supports a single side value per breastfeeding record and does not model multiple side switches inside one session. Bottle records use `amountMl`; V1.2 adds optional `bottleContent`.
 
@@ -183,6 +188,9 @@ The initial product phases must not hard-delete families or children. V1.2 adds 
 - Bottle content, when present, must use the allowed enum values.
 - Breastfeeding requires timing information and a valid `breastSide`, but no amount.
 - New feeding, diaper, and sleep record times must parse from the family timezone and must not be submitted in the future beyond a small clock-skew allowance.
+- Growth record measurement time must parse from the family timezone and must not be submitted in the future beyond a small clock-skew allowance.
+- Growth records require at least one of weight or length/height.
+- Growth record weight and length/height values must stay within broad infant/toddler sanity bounds before persistence.
 - Diaper records require one of `wet`, `dirty`, or `both`.
 - Stool color and consistency are allowed only for `dirty` and `both` diaper records.
 - A child may not have more than one active sleep record.
@@ -236,6 +244,7 @@ Automated tests should cover:
 - Fast logging meets the interaction target for bottle, diaper, breastfeeding, and sleep.
 - PWA metadata exists, and offline write attempts show a network-unavailable error instead of silently succeeding.
 - No public REST API, API token, MCP, or third-party integration endpoint is exposed in the V1 through V1.2 product phases.
+- Growth records can be created by accessible family members, exclude soft-deleted rows from default charts, and expose latest weight and latest length/height independently.
 
 The first implementation should include focused tests around data access and summary calculations before expanding UI test coverage.
 

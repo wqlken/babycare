@@ -1,4 +1,4 @@
-import { Baby, Clock3, Milk, Moon } from "lucide-react";
+import { Baby, Clock3, Milk, Moon, Ruler } from "lucide-react";
 import Link from "next/link";
 
 type QuickActionsProps = {
@@ -31,10 +31,16 @@ export function QuickActions({ childId }: QuickActionsProps) {
       Icon: Clock3,
       tone: "bg-[var(--action-neutral)]",
     },
+    {
+      href: `/children/${childId}/growth`,
+      label: "生长",
+      Icon: Ruler,
+      tone: "bg-[var(--accent-growth)]",
+    },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {actions.map((action) => {
         const Icon = action.Icon;
 

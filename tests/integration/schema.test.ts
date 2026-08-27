@@ -22,6 +22,7 @@ describe("Prisma schema", () => {
       "FeedingRecord",
       "DiaperRecord",
       "SleepRecord",
+      "GrowthRecord",
     ]) {
       expect(schema).toContain(`model ${model} {`);
     }
@@ -101,5 +102,24 @@ describe("Prisma schema", () => {
     expect(schema).toContain("bottleContent");
     expect(schema).toContain("stoolColor");
     expect(schema).toContain("stoolConsistency");
+  });
+
+  test("defines growth record storage for height and weight tracking", () => {
+    const schema = readProjectFile("prisma/schema.prisma");
+    const migration = readProjectFile(
+      "prisma/migrations/000005_growth_records/migration.sql",
+    );
+
+    const modelStart = schema.indexOf("model GrowthRecord {");
+    const modelEnd = schema.indexOf("\n}", modelStart);
+    const block = schema.slice(modelStart, modelEnd);
+
+    expect(block).toContain("measuredAt");
+    expect(block).toContain("weightKg");
+    expect(block).toContain("lengthCm");
+    expect(block).toContain("@@index([childId, measuredAt])");
+    expect(migration).toContain('CREATE TABLE "GrowthRecord"');
+    expect(migration).toContain('"weightKg" DOUBLE PRECISION');
+    expect(migration).toContain('"lengthCm" DOUBLE PRECISION');
   });
 });
