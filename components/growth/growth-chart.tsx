@@ -5,7 +5,7 @@ type GrowthChartPoint = {
   value: number | null;
 };
 
-type GrowthReferenceLine = {
+export type GrowthReferenceLine = {
   key: string;
   label: string;
   z: number;
