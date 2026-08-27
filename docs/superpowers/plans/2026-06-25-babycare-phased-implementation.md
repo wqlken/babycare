@@ -17,6 +17,7 @@
 - Post-v1.2 UI polish is implemented on `main`.
 - Post-v1.2 record-entry polish is implemented on `main`: editable local record/start times, visible high-frequency details instead of collapsed sections, and return-home shortcuts.
 - Post-v1.2 growth tracking V1 is implemented: weight and length/height records, a growth page, latest-value cards, basic trend curves, and focused tests. Official standard reference curves and risk assessment are deferred.
+- Post-v1.2 growth reference enhancement is implemented: 0-36 month sex-specific -2SD/M/+2SD reference lines, cautious z-score prompts, BMI display, and reference helper tests. BMI-for-age reference assessment and clinical diagnosis are deferred.
 - Latest verified commands on `main`: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
 
 ---
@@ -80,6 +81,8 @@ lib/
   summaries.ts
   csv.ts
   growth/service.ts
+  growth/reference.ts
+  growth/reference-data.ts
 prisma/
   schema.prisma
   migrations/
@@ -91,6 +94,7 @@ tests/
     time.test.ts
     units.test.ts
     summaries.test.ts
+    growth-reference.test.ts
   integration/
     auth.test.ts
     permissions.test.ts
@@ -959,6 +963,30 @@ No intentional incomplete sections remain. If implementation discovers framework
 
 Deferred follow-up:
 
-- [ ] Model official reference standard data from verified national standard source tables.
-- [ ] Add sex- and age-aware percentile/SD reference curves.
-- [ ] Add cautious assessment wording and export/report support after reference data is verified.
+- [x] Model 0-36 month weight-for-age and length/height-for-age reference data from verified official source tables.
+- [x] Add sex- and age-aware -2SD/M/+2SD reference curves.
+- [x] Add cautious assessment wording for latest weight and length/height.
+- [ ] Model BMI-for-age reference data.
+- [ ] Add export/report support for growth records and reference results.
+
+### Task 18: Growth Reference Enhancement
+
+**Files:**
+- Create: `lib/growth/reference-data.ts`
+- Create: `lib/growth/reference.ts`
+- Modify: `components/growth/growth-chart.tsx`
+- Modify: `app/(app)/children/[childId]/growth/page.tsx`
+- Test: `tests/unit/growth-reference.test.ts`
+
+- [x] Add static LMS reference tables for 0-36 month weight-for-age and length/height-for-age.
+- [x] Add reference helpers for local-day age calculation, LMS-derived z-score calculation, cautious prompt wording, and chart line generation.
+- [x] Update growth charts to align family measurements and reference lines by age in days.
+- [x] Add BMI display when a record contains both weight and length/height.
+- [x] Suppress reference prompts when sex is missing or measurement age is outside 0-36 months.
+- [x] Add focused unit tests for reference helpers.
+
+Deferred follow-up:
+
+- [ ] Add BMI-for-age reference data and BMI z-score prompts.
+- [ ] Add growth CSV/export support.
+- [ ] Add clinician-friendly printable growth report.
