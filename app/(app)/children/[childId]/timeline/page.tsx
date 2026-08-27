@@ -4,6 +4,7 @@ import { addDays, toLocalDateString } from "@/lib/time";
 import { getTimelineData } from "@/lib/timeline-data";
 import { notFound } from "next/navigation";
 import { TimelineRecordCard } from "@/components/timeline/timeline-record-card";
+import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 
 type PageProps = {
   params: Promise<{ childId: string }>;
@@ -74,42 +75,55 @@ export default async function TimelinePage({ params, searchParams }: PageProps) 
         </Link>
       </div>
 
-      <div className="rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] p-4 shadow-sm">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="flex gap-2">
+      <div className="rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-3">
+        <div className="grid gap-3 lg:grid-cols-[auto_1fr_auto] lg:items-center">
+          <div className="grid grid-cols-3 gap-1 rounded-lg bg-[var(--surface-muted)] p-1">
             <Link
-              className="bc-focus-ring inline-flex min-h-11 items-center justify-center rounded border border-[var(--border-soft)] px-4 text-sm font-medium text-[var(--foreground)]"
+              className="bc-focus-ring inline-flex min-h-10 items-center justify-center gap-1 rounded-md px-3 text-sm font-medium text-[var(--foreground)]"
               href={`/children/${childId}/timeline?date=${previousDate}`}
             >
+              <ChevronLeft aria-hidden="true" size={16} />
               上一天
             </Link>
             <Link
-              className="bc-focus-ring inline-flex min-h-11 items-center justify-center rounded border border-[var(--border-soft)] px-4 text-sm font-medium text-[var(--foreground)]"
+              className="bc-focus-ring inline-flex min-h-10 items-center justify-center rounded-md bg-[var(--surface)] px-3 text-sm font-semibold text-[var(--primary-strong)]"
               href={`/children/${childId}/timeline`}
             >
               今天
             </Link>
             <Link
-              className="bc-focus-ring inline-flex min-h-11 items-center justify-center rounded border border-[var(--border-soft)] px-4 text-sm font-medium text-[var(--foreground)]"
+              className="bc-focus-ring inline-flex min-h-10 items-center justify-center gap-1 rounded-md px-3 text-sm font-medium text-[var(--foreground)]"
               href={`/children/${childId}/timeline?date=${nextDate}`}
             >
               下一天
+              <ChevronRight aria-hidden="true" size={16} />
             </Link>
           </div>
-          <form className="flex flex-col gap-2 sm:flex-row sm:items-end" method="get">
-            <label className="block">
-              <span className="text-sm font-medium text-[#766e66]">
-                选择日期
-              </span>
+          <div className="text-center lg:text-left">
+            <p className="text-xs font-medium text-[var(--text-muted)]">
+              当前日期
+            </p>
+            <p className="mt-1 text-lg font-semibold text-[var(--foreground)]">
+              {selected.date}
+            </p>
+          </div>
+          <form className="flex flex-col gap-2 sm:flex-row sm:items-center" method="get">
+            <label className="flex min-h-10 items-center gap-2 rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3">
+              <CalendarDays
+                aria-hidden="true"
+                className="text-[var(--text-muted)]"
+                size={18}
+              />
+              <span className="sr-only">选择日期</span>
               <input
-                className="mt-2 min-h-11 w-full rounded border border-[var(--border-soft)] bg-[var(--surface)] px-3 text-[var(--foreground)] sm:w-44"
+                className="min-h-8 w-full bg-transparent text-sm text-[var(--foreground)] outline-none sm:w-36"
                 defaultValue={selected.date}
                 name="date"
                 required
                 type="date"
               />
             </label>
-            <button className="bc-focus-ring min-h-11 rounded bg-[var(--primary)] px-5 text-sm font-semibold text-white">
+            <button className="bc-focus-ring min-h-10 rounded-lg bg-[var(--primary)] px-5 text-sm font-semibold text-white">
               查看
             </button>
           </form>
@@ -121,7 +135,7 @@ export default async function TimelinePage({ params, searchParams }: PageProps) 
           {query?.error ?? selected.error}
         </p>
       ) : null}
-      <div className="space-y-3">
+      <div className="space-y-2">
         {timeline.timelineItems.map((item) => (
           <TimelineRecordCard
             childId={childId}
