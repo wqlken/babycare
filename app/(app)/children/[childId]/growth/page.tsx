@@ -3,6 +3,7 @@ import { GrowthCharts } from "@/components/growth/growth-charts";
 import { GrowthPageHeader } from "@/components/growth/growth-page-header";
 import { GrowthPageMessages } from "@/components/growth/growth-page-messages";
 import { GrowthRecentList } from "@/components/growth/growth-recent-list";
+import { GrowthRecordDrawer } from "@/components/growth/growth-record-drawer";
 import { GrowthRecordForm } from "@/components/growth/growth-record-form";
 import { GrowthReferencePanel } from "@/components/growth/growth-reference-panel";
 import { GrowthSummaryCards } from "@/components/growth/growth-summary-cards";
@@ -48,14 +49,21 @@ export default async function GrowthPage({
         weightAssessment={view.weightAssessment}
       />
 
-      <GrowthRecordForm childId={data.child.id} childName={data.child.name} />
+      <GrowthRecordDrawer childName={data.child.name}>
+        <GrowthRecordForm
+          childId={data.child.id}
+          childName={data.child.name}
+          framed={false}
+          showReturnHome={false}
+        />
+      </GrowthRecordDrawer>
 
       <GrowthCharts
         lengthChart={view.lengthChart}
         maxAgeDays={view.maxAgeDays}
         weightChart={view.weightChart}
       />
-      <GrowthRecentList records={view.recentRecords} />
+      <GrowthRecentList childId={data.child.id} records={view.recentRecords} />
     </section>
   );
 }

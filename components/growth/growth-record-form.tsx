@@ -6,22 +6,37 @@ import Link from "next/link";
 type GrowthRecordFormProps = {
   childId: string;
   childName: string;
+  framed?: boolean;
+  showReturnHome?: boolean;
 };
 
 export function GrowthRecordForm({
   childId,
   childName,
+  framed = true,
+  showReturnHome = true,
 }: GrowthRecordFormProps) {
   const defaultTime = formatDateTimeLocalInput(new Date());
 
   return (
-    <form action={createGrowthRecordAction} className="bc-card space-y-4 p-4">
+    <form
+      action={createGrowthRecordAction}
+      className={framed ? "bc-card space-y-4 p-4" : "space-y-4"}
+    >
       <input name="childId" type="hidden" value={childId} />
       <div>
-        <h2 className="text-xl font-semibold text-[var(--foreground)]">
-          新增测量
-        </h2>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">
+        {framed ? (
+          <h2 className="text-xl font-semibold text-[var(--foreground)]">
+            新增测量
+          </h2>
+        ) : null}
+        <p
+          className={
+            framed
+              ? "mt-1 text-sm text-[var(--text-muted)]"
+              : "text-sm text-[var(--text-muted)]"
+          }
+        >
           当前宝宝：{childName}
         </p>
       </div>
@@ -69,12 +84,14 @@ export function GrowthRecordForm({
         <Ruler aria-hidden="true" size={24} />
         保存生长记录
       </button>
-      <Link
-        className="bc-touch-link bc-focus-ring flex items-center justify-center px-4 py-3"
-        href="/"
-      >
-        返回首页
-      </Link>
+      {showReturnHome ? (
+        <Link
+          className="bc-touch-link bc-focus-ring flex items-center justify-center px-4 py-3"
+          href="/"
+        >
+          返回首页
+        </Link>
+      ) : null}
     </form>
   );
 }

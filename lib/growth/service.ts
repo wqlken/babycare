@@ -63,6 +63,13 @@ export type GrowthDatabase = {
         notes?: string | null;
       };
     }) => Promise<{ id: string }>;
+    findFirst: (args: {
+      where: {
+        childId: string;
+        deletedAt: null;
+        id: string;
+      };
+    }) => Promise<{ id: string } | null>;
     findMany: (args: {
       where: {
         childId: string;
@@ -70,6 +77,16 @@ export type GrowthDatabase = {
       };
       orderBy: { measuredAt: "asc" };
     }) => Promise<GrowthRecordItem[]>;
+    update: (args: {
+      where: { id: string };
+      data: {
+        lengthCm: number | null;
+        measuredAt: Date;
+        notes: string | null;
+        updatedById: string;
+        weightKg: number | null;
+      };
+    }) => Promise<{ id: string }>;
   };
 };
 
@@ -83,6 +100,20 @@ type CreateGrowthRecordInput = {
 };
 
 type CreateGrowthRecordResult =
+  | { ok: true; recordId: string }
+  | { ok: false; error: string };
+
+type UpdateGrowthRecordInput = {
+  childId: string;
+  lengthCm?: number | null;
+  measuredAt: Date;
+  notes?: string;
+  now?: Date;
+  recordId: string;
+  weightKg?: number | null;
+};
+
+type UpdateGrowthRecordResult =
   | { ok: true; recordId: string }
   | { ok: false; error: string };
 
@@ -197,6 +228,59 @@ export async function createGrowthRecord(
       weightKg,
       lengthCm,
       notes: input.notes?.trim() || null,
+    },
+  });
+
+  return { ok: true, recordId: record.id };
+}
+
+export async function updateGrowthRecord(
+  userId: string,
+  input: UpdateGrowthRecordInput,
+  db: GrowthDatabase = prisma,
+): Promise<UpdateGrowthRecordResult> {
+  const context = await getGrowthContext(userId, input.childId, db);
+  if (!context.ok) return context;
+
+  const record = await db.growthRecord.findFirst({
+    where: {
+      id: input.recordId,
+      childId: context.child.id,
+      deletedAt: null,
+    },
+  });
+
+  if (!record) {
+    return { ok: false, error: "找不到这条生长记录。" };
+  }
+
+  const measuredAt = input.measuredAt;
+  if (Number.isNaN(measuredAt.getTime())) {
+    return { ok: false, error: "测量时间无效。" };
+  }
+
+  const now = input.now ?? new Date();
+  if (measuredAt.getTime() > now.getTime() + 5 * 60_000) {
+    return { ok: false, error: "测量时间不能晚于当前时间。" };
+  }
+
+  const weightKg = normalizeOptionalMeasurement(input.weightKg);
+  const lengthCm = normalizeOptionalMeasurement(input.lengthCm);
+  const rangeError = validateMeasurementRange({ weightKg, lengthCm });
+  if (rangeError) {
+    return { ok: false, error: rangeError };
+  }
+
+  await db.growthRecord.update({
+    where: {
+      id: record.id,
+    },
+    data: {
+      measuredAt,
+      weightKg,
+      lengthCm,
+      notes: input.notes?.trim() || null,
+      updatedById: context.user.id,
     },
   });
 

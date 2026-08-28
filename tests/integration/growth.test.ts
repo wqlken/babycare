@@ -2,6 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import {
   createGrowthRecord,
   getGrowthData,
+  updateGrowthRecord,
   type GrowthDatabase,
 } from "@/lib/growth/service";
 
@@ -21,6 +22,7 @@ function createGrowthDatabase(options?: {
     lengthCm: number | null;
     notes: string | null;
     deletedAt: Date | null;
+    updatedById?: string | null;
   }> = [];
 
   const db: GrowthDatabase = {
@@ -68,6 +70,14 @@ function createGrowthDatabase(options?: {
         records.push(record);
         return record;
       }),
+      findFirst: vi.fn(async ({ where }) =>
+        records.find(
+          (record) =>
+            record.id === where.id &&
+            record.childId === where.childId &&
+            record.deletedAt === where.deletedAt,
+        ) ?? null,
+      ),
       findMany: vi.fn(async ({ where, orderBy }) => {
         expect(orderBy).toEqual({ measuredAt: "asc" });
         return records
@@ -85,6 +95,23 @@ function createGrowthDatabase(options?: {
             notes: record.notes,
             creatorDisplayName: record.creatorDisplayName,
           }));
+      }),
+      update: vi.fn(async ({ where, data }) => {
+        const index = records.findIndex((record) => record.id === where.id);
+        if (index === -1) {
+          throw new Error("record not found");
+        }
+
+        records[index] = {
+          ...records[index],
+          measuredAt: data.measuredAt,
+          weightKg: data.weightKg,
+          lengthCm: data.lengthCm,
+          notes: data.notes,
+          updatedById: data.updatedById,
+        };
+
+        return records[index];
       }),
     },
   };
@@ -187,5 +214,43 @@ describe("growth records", () => {
     ]);
     expect(result.latestWeight?.id).toBe("weight-only");
     expect(result.latestLength?.id).toBe("length-only");
+  });
+
+  test("updates an active growth record", async () => {
+    const { db, records } = createGrowthDatabase();
+    records.push({
+      id: "growth-1",
+      childId: "child-1",
+      creatorId: "user-1",
+      creatorDisplayName: "妈妈",
+      measuredAt: new Date("2026-07-01T00:00:00.000Z"),
+      weightKg: 4.5,
+      lengthCm: 56,
+      notes: null,
+      deletedAt: null,
+    });
+
+    const result = await updateGrowthRecord(
+      "user-1",
+      {
+        childId: "child-1",
+        recordId: "growth-1",
+        measuredAt: new Date("2026-07-02T00:00:00.000Z"),
+        weightKg: 4.65,
+        lengthCm: 56.8,
+        notes: "  儿保复测  ",
+        now: new Date("2026-07-02T01:00:00.000Z"),
+      },
+      db,
+    );
+
+    expect(result).toEqual({ ok: true, recordId: "growth-1" });
+    expect(records[0]).toMatchObject({
+      measuredAt: new Date("2026-07-02T00:00:00.000Z"),
+      weightKg: 4.65,
+      lengthCm: 56.8,
+      notes: "儿保复测",
+      updatedById: "user-1",
+    });
   });
 });
